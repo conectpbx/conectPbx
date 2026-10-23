@@ -1,0 +1,491 @@
+<title>ConectPbx</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: hero em duas colunas, texto à esquerda e o softphone de demonstração à direita; faixas de seção alternadas */
+:root{
+  --bg:#F4F6F9; --surface:#FFFFFF; --band:#E9EEF4; --fg:#0E1A2B; --muted:#52627A; --line:#D3DBE6;
+  --accent:#E4570F; --accent-fg:#FFFFFF; --ok:#12805C; --warn:#A86500; --bad:#C23030; --screen:#0E1A2B; --screen-fg:#E8EEF7;
+  --display:'Bricolage Grotesque','Segoe UI',system-ui,sans-serif; --body:'IBM Plex Sans','Segoe UI',system-ui,sans-serif; --mono:'IBM Plex Mono',ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0A121F; --surface:#111C2E; --band:#0E1828; --fg:#E8EEF7; --muted:#94A3BA; --line:#22324A;
+  --accent:#FF7A33; --accent-fg:#14100C; --ok:#35C48F; --warn:#E9A23B; --bad:#FF6B6B; --screen:#060C16; --screen-fg:#E8EEF7; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0A121F; --surface:#111C2E; --band:#0E1828; --fg:#E8EEF7; --muted:#94A3BA; --line:#22324A;
+  --accent:#FF7A33; --accent-fg:#14100C; --ok:#35C48F; --warn:#E9A23B; --bad:#FF6B6B; --screen:#060C16; --screen-fg:#E8EEF7; color-scheme:dark}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:16px;line-height:1.6;margin:0}
+h1,h2,h3{font-family:var(--display);line-height:1.1;margin:0;text-wrap:balance;letter-spacing:-.02em}
+p{margin:0}
+a{color:inherit}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.wrap{max-width:1160px;margin-inline:auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.band{background:var(--band)}
+section{padding-block:72px}
+.eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);font-weight:500}
+h2{font-size:clamp(28px,4vw,42px);margin-top:10px}
+.lead{color:var(--muted);max-width:60ch;margin-top:14px}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:12px 20px;border-radius:6px;font-weight:600;text-decoration:none;border:1.5px solid var(--fg);font-size:15px;cursor:pointer;background:transparent;color:var(--fg);font-family:var(--body)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-fg)}
+.btn:hover{filter:brightness(1.07)}
+
+/* topo */
+header{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--bg);border-bottom:1px solid var(--line)}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:30;background:var(--bg)}
+.nav{display:flex;align-items:center;justify-content:space-between;gap:16px;padding-block:14px;flex-wrap:wrap}
+.logo{font-family:var(--display);font-weight:700;font-size:22px;text-decoration:none;display:flex;align-items:center;gap:8px}
+.logo i{width:12px;height:12px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 4px color-mix(in srgb,var(--accent) 25%,transparent)}
+nav{display:flex;gap:22px;flex-wrap:wrap;font-size:14px;font-weight:500}
+nav a{text-decoration:none;color:var(--muted)} nav a:hover{color:var(--fg)}
+
+/* hero */
+.hero{padding-block:56px 72px}
+.hero-grid{display:grid;grid-template-columns:1.05fr .95fr;gap:48px;align-items:center}
+.hero h1{font-size:clamp(36px,5.4vw,64px)}
+.hero h1 em{font-style:normal;color:var(--accent)}
+.hero .lead{font-size:18px}
+.cta{display:flex;gap:12px;flex-wrap:wrap;margin-top:28px}
+.facts{display:flex;gap:28px;flex-wrap:wrap;margin-top:36px;padding-top:20px;border-top:1px solid var(--line)}
+.facts div{font-family:var(--mono);font-size:13px;color:var(--muted)}
+.facts b{display:block;font-family:var(--display);font-size:26px;color:var(--fg);font-weight:700}
+
+/* demo */
+.demo{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;box-shadow:0 18px 40px -22px rgba(14,26,43,.45);min-width:0}
+.demo-top{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:12px;font-family:var(--mono);font-size:12px;color:var(--muted);flex-wrap:wrap}
+.tag{padding:2px 8px;border:1px solid var(--line);border-radius:99px}
+.screen{background:var(--screen);color:var(--screen-fg);border-radius:10px;padding:14px 16px;min-height:112px;display:flex;flex-direction:column;justify-content:space-between}
+.screen .who{font-family:var(--display);font-size:22px}
+.screen .st{font-family:var(--mono);font-size:13px;color:#9FB0C8;display:flex;justify-content:space-between;gap:8px}
+.screen .num{font-family:var(--mono);font-size:26px;letter-spacing:.06em;min-height:36px;overflow-wrap:anywhere}
+.dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--ok);margin-right:6px}
+.dot.ring{background:var(--warn);animation:pulse 1s infinite}
+@keyframes pulse{50%{opacity:.25}}
+.demo-body{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px}
+.pad{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.pad button{font-family:var(--mono);font-size:18px;padding:11px 0;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--fg);cursor:pointer}
+.pad button:hover{border-color:var(--accent)}
+.ctrls{display:flex;gap:6px;margin-top:8px}
+.ctrls button{flex:1;padding:10px 6px;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--fg);font-size:13px;font-weight:600;cursor:pointer;font-family:var(--body)}
+.ctrls .call{background:var(--ok);border-color:var(--ok);color:#fff}
+.ctrls .hang{background:var(--bad);border-color:var(--bad);color:#fff}
+.ctrls button[aria-pressed="true"]{border-color:var(--accent);color:var(--accent)}
+.ctrls button:disabled{opacity:.45;cursor:not-allowed}
+.ext{display:flex;flex-direction:column;gap:6px;min-width:0}
+.ext h3{font-size:13px;font-family:var(--mono);font-weight:500;color:var(--muted);letter-spacing:.06em;text-transform:uppercase;margin-bottom:2px}
+.ext button{display:flex;justify-content:space-between;align-items:center;gap:8px;text-align:left;padding:9px 11px;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--fg);cursor:pointer;font-family:var(--body);font-size:14px}
+.ext button:hover{border-color:var(--accent)}
+.ext small{font-family:var(--mono);color:var(--muted);font-size:12px}
+.s-free::before,.s-busy::before,.s-off::before{content:"";display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:7px}
+.s-free::before{background:var(--ok)} .s-busy::before{background:var(--bad)} .s-off::before{background:var(--muted)}
+.log{margin-top:12px;border-top:1px solid var(--line);padding-top:10px;font-family:var(--mono);font-size:12px;color:var(--muted);max-height:104px;overflow:auto}
+.log div{display:flex;justify-content:space-between;gap:8px;padding:2px 0}
+.note{font-size:12px;color:var(--muted);margin-top:10px}
+
+/* serviços */
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:18px;margin-top:36px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:24px;min-width:0}
+.card h3{font-size:20px;margin-bottom:8px}
+.card p{color:var(--muted);font-size:15px}
+.card .k{font-family:var(--mono);font-size:12px;color:var(--accent);margin-bottom:12px;display:block}
+
+/* ConnectX */
+.cx{display:grid;grid-template-columns:1fr 1fr;gap:48px;align-items:start}
+.feat{list-style:none;padding:0;margin:28px 0 0;display:grid;gap:0}
+.feat li{display:grid;grid-template-columns:150px 1fr;gap:16px;padding:14px 0;border-top:1px solid var(--line);font-size:15px}
+.feat li:last-child{border-bottom:1px solid var(--line)}
+.feat b{font-family:var(--mono);font-weight:500;font-size:13px}
+.feat span{color:var(--muted)}
+.flow{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:22px;font-family:var(--mono);font-size:13px}
+.flow h3{font-family:var(--mono);font-size:12px;font-weight:500;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin-bottom:14px}
+.step{display:flex;gap:10px;align-items:center;padding:9px 12px;border:1px solid var(--line);border-radius:8px;background:var(--bg)}
+.arrow{height:14px;border-left:2px dashed var(--line);margin-left:20px}
+.step em{font-style:normal;color:var(--muted);margin-left:auto}
+
+/* automação */
+.auto{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:24px}
+.pane{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px;min-width:0;display:flex;flex-direction:column;gap:12px}
+.pane h3{font-family:var(--mono);font-size:12px;font-weight:500;color:var(--muted);letter-spacing:.08em;text-transform:uppercase}
+.chat{display:flex;flex-direction:column;gap:8px;min-height:190px;max-height:300px;overflow:auto}
+.msg{border-left:3px solid var(--line);padding:2px 0 2px 10px;font-size:14px}
+.msg b{font-size:13px} .msg small{font-family:var(--mono);color:var(--muted);margin-left:6px}
+.msg.reply{margin-left:22px;border-left-color:var(--accent)}
+.msg .img{display:inline-block;margin:4px 0 0 6px;padding:3px 8px;border-radius:4px;background:var(--band);font-family:var(--mono);font-size:12px}
+.acts{display:flex;gap:8px;flex-wrap:wrap}
+.acts button{padding:8px 12px;border-radius:6px;border:1px solid var(--line);background:var(--bg);color:var(--fg);font-size:13px;font-weight:500;cursor:pointer;font-family:var(--body)}
+.acts button:hover:not(:disabled){border-color:var(--accent)}
+.acts button:disabled{opacity:.45;cursor:not-allowed}
+.tk{border:1px solid var(--line);border-radius:8px;padding:10px 12px;background:var(--bg);display:grid;gap:6px;min-width:0}
+.tkh{display:flex;justify-content:space-between;gap:8px;font-weight:600;font-size:14px;flex-wrap:wrap}
+.tkh .id{font-family:var(--mono);font-size:12px;color:var(--muted);font-weight:400}
+.tk .c{font-size:13px;color:var(--muted);padding-left:10px;border-left:2px solid var(--line);overflow-wrap:anywhere}
+.tk .c q{quotes:none;display:block;font-size:12px;opacity:.8;border-left:2px solid var(--accent);padding-left:6px;margin-bottom:2px}
+.tk.new{border-color:var(--accent)}
+.flowline{display:flex;gap:8px;flex-wrap:wrap;margin-top:20px;font-family:var(--mono);font-size:12px;color:var(--muted)}
+.flowline span{padding:4px 10px;border:1px solid var(--line);border-radius:99px;background:var(--surface)}
+@media (max-width:900px){.auto{grid-template-columns:1fr}}
+
+/* portfolio */
+.tabs{display:flex;gap:8px;flex-wrap:wrap;margin-top:28px}
+.tabs button{padding:8px 16px;border-radius:99px;border:1px solid var(--line);background:var(--surface);color:var(--fg);cursor:pointer;font-weight:500;font-size:14px;font-family:var(--body)}
+.tabs button[aria-pressed="true"]{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+.proj{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;margin-top:20px}
+.proj div{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:16px;min-width:0}
+.proj b{display:block;font-family:var(--display);font-size:17px}
+.proj span{font-family:var(--mono);font-size:12px;color:var(--muted)}
+
+/* contato */
+.contact{display:grid;grid-template-columns:1fr 1fr;gap:48px}
+.cinfo{display:grid;gap:14px;margin-top:24px}
+.cinfo div{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.cinfo span{font-family:var(--mono);font-size:12px;color:var(--muted);width:76px}
+.cinfo code{font-family:var(--mono);font-size:15px;overflow-wrap:anywhere}
+.copy{padding:4px 10px;font-size:12px;border:1px solid var(--line);border-radius:6px;background:var(--surface);color:var(--fg);cursor:pointer}
+form{display:grid;gap:14px;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:24px;min-width:0}
+label{font-size:13px;font-weight:600;display:grid;gap:6px}
+input,textarea{font:inherit;padding:10px 12px;border-radius:6px;border:1px solid var(--line);background:var(--bg);color:var(--fg);width:100%}
+textarea{min-height:110px;resize:vertical}
+#ok{color:var(--ok);font-size:14px;font-weight:500}
+footer{border-top:1px solid var(--line);padding-block:28px;font-size:13px;color:var(--muted)}
+footer .wrap{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+
+@media (max-width:900px){
+  .hero-grid,.cx,.contact{grid-template-columns:1fr;gap:32px}
+  section{padding-block:52px}
+}
+@media (max-width:520px){
+  .demo-body{grid-template-columns:1fr}
+  .feat li{grid-template-columns:1fr;gap:2px}
+  nav{gap:14px}
+}
+@media (prefers-reduced-motion:reduce){.dot.ring{animation:none}html{scroll-behavior:auto}}
+</style>
+
+<header>
+  <div class="wrap nav">
+    <a class="logo" href="#inicio"><i></i>ConectPbx</a>
+    <nav aria-label="Principal">
+      <a href="#demo">Demonstração</a><a href="#servicos">Serviços</a><a href="#connectx">ConnectX</a><a href="#automacao">Integrações</a><a href="#portfolio">Portfólio</a><a href="#contato">Contato</a>
+    </nav>
+  </div>
+</header>
+
+<main id="inicio">
+<section class="hero">
+  <div class="wrap hero-grid">
+    <div>
+      <div class="eyebrow">Telefonia IP e TI desde 2018</div>
+      <h1 style="margin-top:14px">O ramal da sua empresa, <em>em qualquer lugar</em>.</h1>
+      <p class="lead">PABX IP na nuvem, infraestrutura de TI, monitoramento e sistemas sob medida. Sua operação no ar em pouco tempo, com custo previsível.</p>
+      <div class="cta">
+        <a class="btn primary" href="#demo">Testar a demonstração</a>
+        <a class="btn" href="#contato">Pedir uma proposta</a>
+      </div>
+      <div class="facts">
+        <div><b>2018</b>fundação</div>
+        <div><b>SP</b>Av. Aricanduva</div>
+        <div><b>24/7</b>monitoramento</div>
+      </div>
+    </div>
+
+    <div class="demo" id="demo" aria-labelledby="demo-t">
+      <div class="demo-top"><span id="demo-t">Softphone ConnectX</span><span class="tag">demonstração simulada</span></div>
+      <div class="screen" aria-live="polite">
+        <div class="st"><span id="regs"><i class="dot"></i>Ramal 200 registrado</span><span id="timer">00:00</span></div>
+        <div class="who" id="who">Pronto para ligar</div>
+        <div class="num" id="num" aria-label="Número digitado"></div>
+      </div>
+      <div class="demo-body">
+        <div>
+          <div class="pad" id="pad"></div>
+          <div class="ctrls">
+            <button class="call" id="call">Ligar</button>
+            <button class="hang" id="hang" disabled>Desligar</button>
+          </div>
+          <div class="ctrls">
+            <button id="mute" aria-pressed="false" disabled>Mudo</button>
+            <button id="hold" aria-pressed="false" disabled>Espera</button>
+            <button id="xfer" disabled>Transferir</button>
+          </div>
+        </div>
+        <div class="ext">
+          <h3>Ramais da equipe</h3>
+          <div id="exts" style="display:flex;flex-direction:column;gap:6px"></div>
+        </div>
+      </div>
+      <div class="log" id="log" aria-label="Registro de chamadas"><div><span>Sem chamadas ainda</span><span>--:--</span></div></div>
+      <p class="note">Toque num ramal ou digite 201 a 204. Nenhuma ligação real é feita.</p>
+    </div>
+  </div>
+</section>
+
+<section class="band" id="servicos">
+  <div class="wrap">
+    <div class="eyebrow">Serviços</div>
+    <h2>Telecom e TI na mesma conta</h2>
+    <p class="lead">Quem cuida do seu telefone também cuida da rede, dos servidores e dos sistemas que dependem deles.</p>
+    <div class="cards">
+      <article class="card"><span class="k">TELECOM</span><h3>Soluções em Telecom</h3><p>PABX IP, ramais remotos, números de outras cidades e ligações ilimitadas por valor fixo.</p></article>
+      <article class="card"><span class="k">TI</span><h3>Soluções em TI</h3><p>Disponibilidade de internet e infraestrutura adaptadas ao momento de cada negócio.</p></article>
+      <article class="card"><span class="k">MONITORAMENTO</span><h3>Infra monitorada</h3><p>Acompanhamento contínuo de conectividade, serviços e servidores, com alerta antes do cliente perceber.</p></article>
+      <article class="card"><span class="k">DESENVOLVIMENTO</span><h3>Sistemas e aplicativos</h3><p>Sites, sistemas web, apps e integrações construídos junto com a sua operação.</p></article>
+    </div>
+  </div>
+</section>
+
+<section id="connectx">
+  <div class="wrap cx">
+    <div>
+      <div class="eyebrow">Plataforma</div>
+      <h2>ConnectX, o PABX IP na nuvem</h2>
+      <p class="lead">Sem equipamento para manter no escritório. O ramal vai com a pessoa, no computador ou no celular.</p>
+      <ul class="feat">
+        <li><b>Ramal remoto</b><span>Atende de casa, da filial ou da rua, com o mesmo número.</span></li>
+        <li><b>Entre a equipe</b><span>Ligações internas sem custo.</span></li>
+        <li><b>Fixo e móvel</b><span>Chamadas ilimitadas para fixos e celulares por valor fixo.</span></li>
+        <li><b>Vídeo</b><span>Videoconferência integrada ao ramal.</span></li>
+        <li><b>Portaria remota</b><span>Atendimento e liberação de acesso à distância.</span></li>
+      </ul>
+    </div>
+    <div class="flow" aria-label="Exemplo de fluxo de chamada">
+      <h3>Exemplo de fluxo de chamada</h3>
+      <div class="step">Cliente liga para 11 4000-0000<em>entrada</em></div><div class="arrow"></div>
+      <div class="step">URA: 1 Comercial, 2 Suporte, 3 Financeiro<em>menu</em></div><div class="arrow"></div>
+      <div class="step">Fila Suporte, toca nos ramais 202 e 204<em>fila</em></div><div class="arrow"></div>
+      <div class="step">Sem resposta em 20 s, vai para o celular do plantão<em>desvio</em></div><div class="arrow"></div>
+      <div class="step">Chamada gravada e registrada no relatório<em>registro</em></div>
+    </div>
+  </div>
+</section>
+
+<section class="band" id="automacao">
+  <div class="wrap">
+    <div class="eyebrow">Integrações</div>
+    <h2>CRMs e mensagens corporativas trabalhando juntos</h2>
+    <p class="lead">Conectamos os aplicativos de mensagens da sua equipe ao CRM e ao sistema de atendimento. No exemplo abaixo, o Slack alimenta o Zoho Desk: cada conversa do canal vira ticket e comentários, sem copiar e colar. Conversas normais ficam num ticket por canal e por dia, e uma thread abre um ticket próprio com o título da mensagem que a iniciou.</p>
+    <div class="flowline"><span>Mensagens corporativas: Slack</span><span>Automação de fluxos</span><span>Controle de duplicidade</span><span>CRM e atendimento: Zoho Desk</span></div>
+    <div class="flowline" style="margin-top:8px"><span>Também integramos: Microsoft Teams</span><span>WhatsApp Business</span><span>Zoho CRM</span><span>HubSpot</span><span>Pipedrive</span></div>
+    <div class="auto">
+      <div class="pane">
+        <h3>Slack · #suporte-clientes</h3>
+        <div class="chat" id="chat" aria-live="polite"></div>
+        <div class="acts">
+          <button id="a-norm" type="button">Mensagem normal</button>
+          <button id="a-img" type="button">Mensagem com imagem</button>
+          <button id="a-thr" type="button">Abrir thread</button>
+          <button id="a-rep" type="button" disabled>Responder na thread</button>
+          <button id="a-reset" type="button">Limpar</button>
+        </div>
+      </div>
+      <div class="pane">
+        <h3>Zoho Desk · tickets criados</h3>
+        <div id="tks" style="display:grid;gap:10px"></div>
+      </div>
+    </div>
+    <p class="note">Demonstração simulada com Slack e Zoho Desk e mensagens de exemplo. O mesmo modelo se aplica a outros CRMs e aplicativos de mensagens. Cada comentário cita a mensagem anterior, e imagens viram anexos do ticket.</p>
+  </div>
+</section>
+
+<section id="portfolio">
+  <div class="wrap">
+    <div class="eyebrow">Portfólio</div>
+    <h2>Projetos entregues</h2>
+    <div class="tabs" id="tabs" role="group" aria-label="Filtro">
+      <button aria-pressed="true" data-f="all">Todos</button><button aria-pressed="false" data-f="App">App</button><button aria-pressed="false" data-f="Pabx IP">Pabx IP</button><button aria-pressed="false" data-f="Web">Web</button><button aria-pressed="false" data-f="Automação">Integrações</button>
+    </div>
+    <div class="proj" id="proj"></div>
+  </div>
+</section>
+
+<section class="band" id="contato">
+  <div class="wrap contact">
+    <div>
+      <div class="eyebrow">Contato</div>
+      <h2>Fale com quem instala e mantém</h2>
+      <p class="lead">Conte o que a sua empresa usa hoje. Respondemos com um desenho da solução e o valor.</p>
+      <div class="cinfo">
+        <div><span>Telefone</span><code>+55 11 96948-9493</code><button class="copy" data-c="+55 11 96948-9493">Copiar</button></div>
+        <div><span>E-mail</span><code>conectpbx@gmail.com</code><button class="copy" data-c="conectpbx@gmail.com">Copiar</button></div>
+        <div><span>Endereço</span><code>Av. Aricanduva, São Paulo, SP</code></div>
+      </div>
+      <div class="cta"><a class="btn primary" href="https://wa.me/5511969489493?text=Ol%C3%A1%2C%20quero%20conhecer%20o%20ConnectX" target="_blank" rel="noopener">Chamar no WhatsApp</a></div>
+    </div>
+    <form id="form">
+      <label for="f-nome">Nome<input id="f-nome" required autocomplete="name"></label>
+      <label for="f-mail">E-mail<input id="f-mail" type="email" required autocomplete="email"></label>
+      <label for="f-ass">Assunto<input id="f-ass" required></label>
+      <label for="f-msg">Mensagem<textarea id="f-msg" required></textarea></label>
+      <button class="btn primary" type="submit">Enviar mensagem</button>
+      <p id="ok" hidden></p>
+    </form>
+  </div>
+</section>
+</main>
+
+<footer><div class="wrap"><span>© 2018-2026 ConectPbx. Av. Aricanduva, São Paulo.</span><span>Termos de serviço · Política de privacidade</span></div></footer>
+
+<script>
+(function(){
+  var $=function(i){return document.getElementById(i)};
+  var EXT=[
+    {n:'201',name:'Comercial',s:'free'},
+    {n:'202',name:'Suporte',s:'free'},
+    {n:'203',name:'Financeiro',s:'busy'},
+    {n:'204',name:'Plantão',s:'off'}
+  ];
+  var num='',call=null,tick=null,secs=0,ringT=null;
+
+  var pad=$('pad');
+  '123456789*0#'.split('').forEach(function(k){
+    var b=document.createElement('button');b.type='button';b.textContent=k;b.setAttribute('aria-label','Tecla '+k);
+    b.onclick=function(){ if(call)return; if(num.length<10){num+=k;render();} };
+    pad.appendChild(b);
+  });
+
+  var exts=$('exts');
+  var label={free:'livre',busy:'em chamada',off:'ausente'};
+  EXT.forEach(function(e){
+    var b=document.createElement('button');b.type='button';
+    b.innerHTML='<span class="s-'+e.s+'">'+e.name+'</span><small>'+e.n+' · '+label[e.s]+'</small>';
+    b.onclick=function(){ if(call)return; num=e.n; render(); start(); };
+    exts.appendChild(b);
+  });
+
+  function find(n){return EXT.filter(function(e){return e.n===n})[0]}
+  function mmss(s){return ('0'+Math.floor(s/60)).slice(-2)+':'+('0'+s%60).slice(-2)}
+  function setBtns(on){
+    ['hang','mute','hold','xfer'].forEach(function(i){$(i).disabled=!on});
+    $('call').disabled=on;
+  }
+  function render(){
+    $('num').textContent=num;
+    if(!call){$('who').textContent=num?'Pronto para ligar':'Pronto para ligar';}
+  }
+  function addLog(txt,tm){
+    var l=$('log'); if(l.firstChild&&l.firstChild.textContent.indexOf('Sem chamadas')===0) l.innerHTML='';
+    var d=document.createElement('div');
+    var now=new Date();
+    d.innerHTML='<span>'+txt+'</span><span>'+tm+'</span>';
+    l.insertBefore(d,l.firstChild);
+  }
+  function start(){
+    if(call||!num)return;
+    var e=find(num), who=e?e.name+' ('+e.n+')':'Número '+num;
+    call={who:who,ext:e,state:'ring'};
+    setBtns(true);
+    $('who').textContent='Chamando '+who;
+    $('regs').innerHTML='<i class="dot ring"></i>Chamando...';
+    var wait=1800;
+    ringT=setTimeout(function(){
+      if(e&&e.s==='busy'){ $('who').textContent=who+' ocupado'; end('ocupado'); return; }
+      if(e&&e.s==='off'){ $('who').textContent=who+' sem resposta'; end('sem resposta'); return; }
+      call.state='live'; secs=0;
+      $('who').textContent='Em chamada com '+who;
+      $('regs').innerHTML='<i class="dot"></i>Conectado';
+      tick=setInterval(function(){secs++;$('timer').textContent=mmss(secs)},1000);
+    },wait);
+  }
+  function end(motivo){
+    clearTimeout(ringT);clearInterval(tick);
+    if(call){
+      addLog((call.who)+' · '+(motivo||'encerrada'),mmss(secs));
+    }
+    call=null;secs=0;num='';
+    setTimeout(function(){
+      if(call)return;
+      $('who').textContent='Pronto para ligar';$('timer').textContent='00:00';
+      $('regs').innerHTML='<i class="dot"></i>Ramal 200 registrado';
+    },1400);
+    setBtns(false);
+    $('mute').setAttribute('aria-pressed','false');$('hold').setAttribute('aria-pressed','false');
+    $('num').textContent='';
+  }
+  $('call').onclick=function(){ if(!num){$('who').textContent='Digite um ramal de 201 a 204';return;} start(); };
+  $('hang').onclick=function(){ end('encerrada'); };
+  ['mute','hold'].forEach(function(id){
+    $(id).onclick=function(){
+      if(!call||call.state!=='live')return;
+      var p=this.getAttribute('aria-pressed')==='true';
+      this.setAttribute('aria-pressed',String(!p));
+      $('who').textContent=(!p?(id==='mute'?'Microfone desligado':'Em espera'):'Em chamada com '+call.who);
+    };
+  });
+  $('xfer').onclick=function(){
+    if(!call||call.state!=='live')return;
+    var alvo=EXT.filter(function(e){return e.s==='free'&&(!call.ext||e.n!==call.ext.n)})[0];
+    if(!alvo){$('who').textContent='Nenhum ramal livre';return;}
+    addLog(call.who+' transferida para '+alvo.name+' ('+alvo.n+')',mmss(secs));
+    end('transferida');
+  };
+
+  // portfólio
+  var P=[['App 1','App'],['App Softphone','App'],['App Zoiper','App'],['Softphone','App'],['Web Pabx','Pabx IP'],['Pabx IP','Pabx IP'],['Callcenter','Pabx IP'],['Integração','Pabx IP'],['Web Adm','Web'],['Web Relatório','Web'],['Slack + Zoho Desk','Automação'],['Mensagens corporativas + CRM','Automação'],['Alertas de monitoramento','Automação']];
+  function listar(f){
+    $('proj').innerHTML=P.filter(function(p){return f==='all'||p[1]===f||(f==='Web'&&p[1]==='Web')}).map(function(p){return '<div><b>'+p[0]+'</b><span>'+p[1]+'</span></div>'}).join('');
+  }
+  listar('all');
+  $('tabs').addEventListener('click',function(ev){
+    var b=ev.target.closest('button'); if(!b)return;
+    [].forEach.call($('tabs').children,function(x){x.setAttribute('aria-pressed',String(x===b))});
+    listar(b.dataset.f);
+  });
+
+  // automação Slack -> Zoho Desk (simulada)
+  (function(){
+    var NORM=['Cliente Acme sem acesso ao painel','Já reiniciei o servidor, aguardando teste','Ramal 203 sem áudio de saída','Teste concluído, normalizado'];
+    var REPL=['Identifiquei o serviço parado','Reiniciado, monitorando','Normalizado às 15:42'];
+    var st,ni;
+    function esc(x){return String(x).replace(/[&<>]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;'}[c]})}
+    function paint(){
+      $('chat').innerHTML=st.chat.length?st.chat.map(function(m){
+        return '<div class="msg'+(m.reply?' reply':'')+'"><b>'+esc(m.who)+'</b><small>agora</small><div>'+esc(m.txt)+(m.img?'<span class="img">print-tela.png</span>':'')+'</div></div>';
+      }).join(''):'<div class="msg"><small>Nenhuma mensagem ainda</small></div>';
+      $('chat').scrollTop=$('chat').scrollHeight;
+      $('tks').innerHTML=st.tickets.length?st.tickets.map(function(t,i){
+        return '<div class="tk'+(i===st.tickets.length-1?' new':'')+'"><div class="tkh"><span>'+esc(t.title)+'</span><span class="id">'+t.id+(t.thread?' · thread':' · canal do dia')+'</span></div>'+
+          t.cs.map(function(c){return '<div class="c">'+(c.q?'<q>'+esc(c.q)+'</q>':'')+'<b>'+esc(c.who)+':</b> '+esc(c.txt)+(c.img?' (anexo: print-tela.png)':'')+'</div>'}).join('')+'</div>';
+      }).join(''):'<div class="msg"><small>Os tickets aparecem aqui</small></div>';
+      $('a-rep').disabled=!st.thr;
+      $('a-thr').disabled=!!st.thr;
+    }
+    function newTk(title,thread){var t={id:'#'+(++st.n),title:title,thread:thread,cs:[]};st.tickets.push(t);return t}
+    function addC(t,txt,img,who){var p=t.cs[t.cs.length-1];t.cs.push({q:p?p.who+': '+p.txt:null,who:who,txt:txt,img:img})}
+    function dayMsg(txt,img,who){
+      if(!st.day) st.day=newTk('#suporte-clientes · '+new Date().toLocaleDateString('pt-BR'),false);
+      st.chat.push({txt:txt,img:img,who:who});addC(st.day,txt,img,who);paint();
+    }
+    function reset(){st={day:null,thr:null,tickets:[],chat:[],n:4100,r:0};ni=0;paint()}
+    $('a-norm').onclick=function(){dayMsg(NORM[ni%NORM.length],false,ni%2?'Carla':'Rafael');ni++};
+    $('a-img').onclick=function(){dayMsg('Segue o print do erro',true,'Carla')};
+    $('a-thr').onclick=function(){
+      var t='Falha no sistema X';
+      st.chat.push({txt:t,who:'Rafael'});
+      st.thr=newTk(t,true);addC(st.thr,t,false,'Rafael');paint();
+    };
+    $('a-rep').onclick=function(){
+      var txt=REPL[Math.min(st.r++,REPL.length-1)];
+      st.chat.push({txt:txt,who:'Carla',reply:true});addC(st.thr,txt,false,'Carla');paint();
+    };
+    $('a-reset').onclick=reset;
+    reset();
+  })();
+
+  // copiar contato
+  [].forEach.call(document.querySelectorAll('.copy'),function(b){
+    b.onclick=function(){
+      var t=b.dataset.c;
+      try{navigator.clipboard.writeText(t).then(function(){b.textContent='Copiado'},function(){b.textContent='Selecione e copie'})}
+      catch(e){b.textContent='Selecione e copie'}
+      setTimeout(function(){b.textContent='Copiar'},1800);
+    };
+  });
+
+  // formulário: sem envio real nesta página de demonstração
+  $('form').addEventListener('submit',function(ev){
+    ev.preventDefault();
+    var o=$('ok');o.hidden=false;
+    o.textContent='Prévia: o formulário só envia depois de ligado ao seu servidor ou ao serviço de e-mail do site.';
+  });
+})();
+</script>
