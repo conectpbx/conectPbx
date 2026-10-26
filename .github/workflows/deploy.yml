@@ -65,6 +65,21 @@ jobs:
     runs-on: ubuntu-latest
     environment: producao
     steps:
+      - name: Conferir secrets de deploy
+        env:
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_USER: ${{ secrets.SSH_USER }}
+          SSH_KEY: ${{ secrets.SSH_KEY }}
+        run: |
+          faltando=""
+          [ -z "$SSH_HOST" ] && faltando="$faltando SSH_HOST"
+          [ -z "$SSH_USER" ] && faltando="$faltando SSH_USER"
+          [ -z "$SSH_KEY" ] && faltando="$faltando SSH_KEY"
+          if [ -n "$faltando" ]; then
+            echo "::error::Secrets ausentes:$faltando. Cadastre em Settings > Secrets and variables > Actions (ou no ambiente 'producao'). Veja docs/deploy.md."
+            exit 1
+          fi
+
       - name: Atualizar o container no servidor
         uses: appleboy/ssh-action@v1.2.0
         env:
@@ -81,7 +96,9 @@ jobs:
           script: |
             echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USER" --password-stdin
             docker pull "$IMAGE:latest"
-            cd "${{ secrets.DEPLOY_PATH || '~/conectpbx' }}"
+            DEST="${{ secrets.DEPLOY_PATH }}"
+            [ -z "$DEST" ] && DEST="$HOME/conectpbx"
+            cd "$DEST"
             docker compose up -d --remove-orphans
             docker image prune -f
             docker logout ghcr.io
