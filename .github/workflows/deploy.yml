@@ -97,28 +97,35 @@ jobs:
             echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USER" --password-stdin
             docker pull "$IMAGE:latest"
             DEST="${{ secrets.DEPLOY_PATH }}"
-            [ -z "$DEST" ] && DEST="$HOME/conectpbx"
-            DEST="${DEST/#\~/$HOME}"
-            echo "Pasta de deploy: $DEST"
+            if [ -z "$DEST" ]; then
+              DEST="$HOME/conectpbx"
+            fi
+            case "$DEST" in
+              "~"*) DEST="$HOME${DEST#"~"}" ;;
+            esac
+            echo "Usuario: $(whoami) | Pasta de deploy: $DEST"
             if [ ! -d "$DEST" ]; then
-              echo "ERRO: a pasta $DEST não existe no servidor. Crie-a e copie deploy/docker-compose.yml para ela." >&2
+              echo "ERRO: a pasta $DEST nao existe no servidor. Crie-a e copie deploy/docker-compose.yml para ela."
               exit 1
             fi
             cd "$DEST"
             COMPOSE=""
             for f in docker-compose.yml docker-compose.yaml compose.yml compose.yaml; do
-              [ -f "$f" ] && COMPOSE="$f" && break
+              if [ -z "$COMPOSE" ] && [ -f "$f" ]; then
+                COMPOSE="$f"
+              fi
             done
             if [ -z "$COMPOSE" ]; then
-              echo "ERRO: nenhum arquivo docker-compose.yml em $DEST." >&2
-              ls -la >&2
+              echo "ERRO: nenhum arquivo compose em $DEST. Conteudo da pasta:"
+              ls -la
               exit 1
             fi
-            if ! docker compose version >/dev/null 2>&1; then
-              echo "ERRO: o plugin 'docker compose' não está instalado no servidor." >&2
+            if ! docker compose version; then
+              echo "ERRO: o plugin docker compose nao esta instalado no servidor."
               exit 1
             fi
-            docker compose -f "$COMPOSE" up -d --remove-orphans 2>&1
+            echo "Usando $COMPOSE"
+            docker compose -f "$COMPOSE" up -d --remove-orphans
             docker compose -f "$COMPOSE" ps
             docker image prune -f
             docker logout ghcr.io
