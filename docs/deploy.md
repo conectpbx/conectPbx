@@ -14,7 +14,8 @@ Alterações só em arquivos `.md` ou na pasta `docs/` não disparam o deploy.
 ### No servidor
 1. Instale Docker e o plugin Compose.
 2. Crie a pasta `~/conectpbx` e copie para ela o arquivo `deploy/docker-compose.yml`.
-3. Ajuste a porta (`8080:80`) ou a rede do seu proxy reverso. Se o container atual do site usa outra porta ou rede, mantenha as mesmas para não mexer no domínio.
+3. Descubra a rede Docker do Nginx Proxy Manager: `docker inspect <container-do-npm> --format '{{json .NetworkSettings.Networks}}'`.
+   No `docker-compose.yml`, troque `npm_default` pelo nome dessa rede (ou crie um arquivo `.env` ao lado com `NPM_NETWORK=nome_da_rede`).
 4. Crie um usuário só para o deploy, no grupo `docker`, e uma chave SSH exclusiva para ele:
    `ssh-keygen -t ed25519 -f deploy_key -C "github-actions"`
    Instale a chave pública (`deploy_key.pub`) em `~/.ssh/authorized_keys` desse usuário.
@@ -31,6 +32,20 @@ Alterações só em arquivos `.md` ou na pasta `docs/` não disparam o deploy.
 Crie também o ambiente **producao** (Settings → Environments). Se quiser aprovação manual antes de cada deploy, marque *Required reviewers*.
 
 O login do servidor no registry usa o `GITHUB_TOKEN` da própria execução, então não é preciso criar token pessoal.
+
+## Nginx Proxy Manager (primeira vez)
+O container do site não publica porta. O NPM o acessa pelo nome, dentro da rede compartilhada.
+
+1. Pare o container antigo do site (ou anote a configuração dele antes).
+2. Faça o primeiro deploy (push na `main` ou *Run workflow* na aba Actions).
+3. No NPM, abra o *Proxy Host* do domínio (conectxip.com) e altere:
+   - **Forward Hostname / IP:** `conectpbx-site`
+   - **Forward Port:** `80`
+   - **Scheme:** `http`
+4. Mantenha o SSL (Let's Encrypt) e ative *Force SSL* e *HTTP/2*, se ainda não estiverem ativos.
+5. Teste o domínio. O NPM e o site precisam estar na mesma rede Docker, senão o NPM mostra 502.
+
+Se o NPM mostrar **502 Bad Gateway**: confirme que o container está de pé (`docker ps`), que a rede do compose é a mesma do NPM e que o nome no Proxy Host é exatamente `conectpbx-site`.
 
 ## Voltar para uma versão anterior
 Toda imagem fica com a tag do commit. No servidor, edite o `docker-compose.yml` para

@@ -1,9 +1,15 @@
-# Arquivo de referência para o servidor. Copie para o servidor e ajuste a porta e a rede
-# (por exemplo, a rede do seu proxy reverso, como Traefik ou Nginx Proxy Manager).
+# Referência para o servidor com Nginx Proxy Manager (NPM).
+# O container não publica porta: o NPM acessa pelo nome "conectpbx-site" na rede compartilhada.
+# Descubra o nome da rede do NPM com:  docker inspect <container-do-npm> --format '{{json .NetworkSettings.Networks}}'
 services:
   site:
     image: ghcr.io/conectpbx/conectpbx:latest
     container_name: conectpbx-site
     restart: unless-stopped
-    ports:
-      - "8080:80"
+    networks:
+      - proxy
+
+networks:
+  proxy:
+    external: true
+    name: ${NPM_NETWORK:-npm_default}   # troque pelo nome real da rede do seu NPM
