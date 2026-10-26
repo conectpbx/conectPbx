@@ -1,173 +1,249 @@
 <title>ConectPbx</title>
 <meta name="claude:viewport-fit-sides" content="cover">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
-/* Layout: hero em duas colunas, texto à esquerda e o softphone de demonstração à direita; faixas de seção alternadas */
+/* Layout: nav translúcido fixo, hero com demo em vidro sobre malha de pontos, bento de serviços, passos, FAQ e CTA final */
 :root{
-  --bg:#F4F6F9; --surface:#FFFFFF; --band:#E9EEF4; --fg:#0E1A2B; --muted:#52627A; --line:#D3DBE6;
-  --accent:#E4570F; --accent-fg:#FFFFFF; --ok:#12805C; --warn:#A86500; --bad:#C23030; --screen:#0E1A2B; --screen-fg:#E8EEF7;
+  --bg:#F5F7FB; --surface:#FFFFFF; --surface2:#EEF2F8; --band:#EAEFF6; --fg:#0C1729; --muted:#4F5F78; --line:#D6DEEA;
+  --accent:#E4570F; --accent-soft:#FDE9DD; --accent-fg:#FFFFFF; --ok:#12805C; --warn:#A86500; --bad:#C23030;
+  --screen:#0C1729; --screen-fg:#E8EEF7; --dots:#C8D2E2; --glow:rgba(228,87,15,.16); --shadow:0 24px 50px -28px rgba(12,23,41,.5);
   --display:'Bricolage Grotesque','Segoe UI',system-ui,sans-serif; --body:'IBM Plex Sans','Segoe UI',system-ui,sans-serif; --mono:'IBM Plex Mono',ui-monospace,Menlo,monospace;
 }
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
-  --bg:#0A121F; --surface:#111C2E; --band:#0E1828; --fg:#E8EEF7; --muted:#94A3BA; --line:#22324A;
-  --accent:#FF7A33; --accent-fg:#14100C; --ok:#35C48F; --warn:#E9A23B; --bad:#FF6B6B; --screen:#060C16; --screen-fg:#E8EEF7; color-scheme:dark}}
+  --bg:#08101D; --surface:#0F1A2D; --surface2:#142238; --band:#0B1626; --fg:#E9EFF8; --muted:#97A6BD; --line:#223350;
+  --accent:#FF7A33; --accent-soft:#2A1A12; --accent-fg:#15100B; --ok:#35C48F; --warn:#E9A23B; --bad:#FF6B6B;
+  --screen:#050B15; --screen-fg:#E9EFF8; --dots:#1B2A44; --glow:rgba(255,122,51,.18); --shadow:0 24px 60px -30px rgba(0,0,0,.8); color-scheme:dark}}
 :root[data-theme="dark"]{
-  --bg:#0A121F; --surface:#111C2E; --band:#0E1828; --fg:#E8EEF7; --muted:#94A3BA; --line:#22324A;
-  --accent:#FF7A33; --accent-fg:#14100C; --ok:#35C48F; --warn:#E9A23B; --bad:#FF6B6B; --screen:#060C16; --screen-fg:#E8EEF7; color-scheme:dark}
+  --bg:#08101D; --surface:#0F1A2D; --surface2:#142238; --band:#0B1626; --fg:#E9EFF8; --muted:#97A6BD; --line:#223350;
+  --accent:#FF7A33; --accent-soft:#2A1A12; --accent-fg:#15100B; --ok:#35C48F; --warn:#E9A23B; --bad:#FF6B6B;
+  --screen:#050B15; --screen-fg:#E9EFF8; --dots:#1B2A44; --glow:rgba(255,122,51,.18); --shadow:0 24px 60px -30px rgba(0,0,0,.8); color-scheme:dark}
 *{box-sizing:border-box}
-html{scroll-behavior:smooth}
-body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:16px;line-height:1.6;margin:0}
-h1,h2,h3{font-family:var(--display);line-height:1.1;margin:0;text-wrap:balance;letter-spacing:-.02em}
-p{margin:0}
-a{color:inherit}
-:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
-.wrap{max-width:1160px;margin-inline:auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+html{scroll-behavior:smooth;scroll-padding-top:84px}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:16px;line-height:1.6;margin:0;-webkit-font-smoothing:antialiased}
+h1,h2,h3{font-family:var(--display);line-height:1.08;margin:0;text-wrap:balance;letter-spacing:-.025em}
+p{margin:0} a{color:inherit}
+:focus-visible{outline:3px solid var(--accent);outline-offset:3px;border-radius:4px}
+.wrap{max-width:1180px;margin-inline:auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+section{padding-block:96px}
 .band{background:var(--band)}
-section{padding-block:72px}
-.eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);font-weight:500}
-h2{font-size:clamp(28px,4vw,42px);margin-top:10px}
-.lead{color:var(--muted);max-width:60ch;margin-top:14px}
-.btn{display:inline-flex;align-items:center;gap:8px;padding:12px 20px;border-radius:6px;font-weight:600;text-decoration:none;border:1.5px solid var(--fg);font-size:15px;cursor:pointer;background:transparent;color:var(--fg);font-family:var(--body)}
-.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-fg)}
-.btn:hover{filter:brightness(1.07)}
+.eyebrow{display:inline-flex;align-items:center;gap:8px;font-family:var(--mono);font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);font-weight:500}
+.eyebrow::before{content:"";width:18px;height:2px;background:currentColor}
+h2{font-size:clamp(30px,4.4vw,48px);margin-top:12px;font-weight:700}
+.lead{color:var(--muted);max-width:62ch;margin-top:16px;font-size:17px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:46px;padding:0 22px;border-radius:10px;font-weight:600;text-decoration:none;border:1.5px solid var(--line);font-size:15px;cursor:pointer;background:var(--surface);color:var(--fg);font-family:var(--body);transition:transform .15s,box-shadow .15s,border-color .15s}
+.btn:hover{transform:translateY(-2px);border-color:var(--fg)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-fg);box-shadow:0 10px 24px -12px var(--accent)}
+.btn.primary:hover{box-shadow:0 14px 28px -10px var(--accent);border-color:var(--accent)}
 
 /* topo */
-header{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--bg);border-bottom:1px solid var(--line)}
-body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:30;background:var(--bg)}
-.nav{display:flex;align-items:center;justify-content:space-between;gap:16px;padding-block:14px;flex-wrap:wrap}
-.logo{font-family:var(--display);font-weight:700;font-size:22px;text-decoration:none;display:flex;align-items:center;gap:8px}
-.logo i{width:12px;height:12px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 4px color-mix(in srgb,var(--accent) 25%,transparent)}
-nav{display:flex;gap:22px;flex-wrap:wrap;font-size:14px;font-weight:500}
-nav a{text-decoration:none;color:var(--muted)} nav a:hover{color:var(--fg)}
+header{position:sticky;top:env(safe-area-inset-top,0px);z-index:40;background:color-mix(in srgb,var(--bg) 82%,transparent);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:50;background:var(--bg)}
+.nav{display:flex;align-items:center;justify-content:space-between;gap:16px;min-height:68px}
+.logo{font-family:var(--display);font-weight:800;font-size:23px;text-decoration:none;display:flex;align-items:center;gap:10px;letter-spacing:-.03em}
+.logo i{width:14px;height:14px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 5px var(--glow)}
+nav ul{display:flex;gap:6px;list-style:none;margin:0;padding:0}
+nav a.l{display:block;padding:8px 14px;border-radius:8px;text-decoration:none;color:var(--muted);font-size:14px;font-weight:500}
+nav a.l:hover{background:var(--surface2);color:var(--fg)}
+.nav .btn{min-height:40px;font-size:14px;padding:0 16px}
+.burger{display:none;min-height:40px;width:44px;border:1.5px solid var(--line);border-radius:10px;background:var(--surface);color:var(--fg);cursor:pointer;font-size:18px;line-height:1}
 
 /* hero */
-.hero{padding-block:56px 72px}
-.hero-grid{display:grid;grid-template-columns:1.05fr .95fr;gap:48px;align-items:center}
-.hero h1{font-size:clamp(36px,5.4vw,64px)}
+.hero{padding-block:72px 96px;position:relative;overflow:hidden}
+.hero::before{content:"";position:absolute;inset:0;background-image:radial-gradient(var(--dots) 1.2px,transparent 1.2px);background-size:26px 26px;mask-image:linear-gradient(to bottom,#000 30%,transparent 95%);-webkit-mask-image:linear-gradient(to bottom,#000 30%,transparent 95%);pointer-events:none}
+.hero::after{content:"";position:absolute;width:620px;height:620px;right:-160px;top:-120px;border-radius:50%;background:radial-gradient(circle,var(--glow),transparent 65%);pointer-events:none}
+.hero-grid{position:relative;z-index:1;display:grid;grid-template-columns:1.02fr .98fr;gap:56px;align-items:center}
+.pill{display:inline-flex;align-items:center;gap:8px;padding:6px 14px 6px 8px;border:1px solid var(--line);border-radius:99px;background:var(--surface);font-size:13px;color:var(--muted)}
+.pill b{background:var(--accent);color:var(--accent-fg);border-radius:99px;padding:1px 9px;font-size:12px;font-weight:600}
+.hero h1{font-size:clamp(40px,6.2vw,76px);font-weight:800;margin-top:20px}
 .hero h1 em{font-style:normal;color:var(--accent)}
-.hero .lead{font-size:18px}
-.cta{display:flex;gap:12px;flex-wrap:wrap;margin-top:28px}
-.facts{display:flex;gap:28px;flex-wrap:wrap;margin-top:36px;padding-top:20px;border-top:1px solid var(--line)}
-.facts div{font-family:var(--mono);font-size:13px;color:var(--muted)}
-.facts b{display:block;font-family:var(--display);font-size:26px;color:var(--fg);font-weight:700}
+.hero .lead{font-size:19px;margin-top:22px}
+.cta{display:flex;gap:12px;flex-wrap:wrap;margin-top:32px}
+.trust{display:flex;gap:10px 22px;flex-wrap:wrap;margin-top:34px;font-size:14px;color:var(--muted)}
+.trust span::before{content:"✓";color:var(--ok);font-weight:700;margin-right:8px}
 
-/* demo */
-.demo{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;box-shadow:0 18px 40px -22px rgba(14,26,43,.45);min-width:0}
+/* demo softphone */
+.demo{background:color-mix(in srgb,var(--surface) 88%,transparent);backdrop-filter:blur(12px);border:1px solid var(--line);border-radius:20px;padding:18px;box-shadow:var(--shadow);min-width:0}
 .demo-top{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:12px;font-family:var(--mono);font-size:12px;color:var(--muted);flex-wrap:wrap}
-.tag{padding:2px 8px;border:1px solid var(--line);border-radius:99px}
-.screen{background:var(--screen);color:var(--screen-fg);border-radius:10px;padding:14px 16px;min-height:112px;display:flex;flex-direction:column;justify-content:space-between}
-.screen .who{font-family:var(--display);font-size:22px}
+.tag{padding:3px 10px;border:1px solid var(--line);border-radius:99px;background:var(--bg)}
+.screen{background:var(--screen);color:var(--screen-fg);border-radius:14px;padding:16px 18px;min-height:124px;display:flex;flex-direction:column;justify-content:space-between;gap:6px}
+.screen .who{font-family:var(--display);font-size:23px;font-weight:700}
 .screen .st{font-family:var(--mono);font-size:13px;color:#9FB0C8;display:flex;justify-content:space-between;gap:8px}
 .screen .num{font-family:var(--mono);font-size:26px;letter-spacing:.06em;min-height:36px;overflow-wrap:anywhere}
 .dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--ok);margin-right:6px}
 .dot.ring{background:var(--warn);animation:pulse 1s infinite}
 @keyframes pulse{50%{opacity:.25}}
-.demo-body{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px}
-.pad{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
-.pad button{font-family:var(--mono);font-size:18px;padding:11px 0;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--fg);cursor:pointer}
-.pad button:hover{border-color:var(--accent)}
-.ctrls{display:flex;gap:6px;margin-top:8px}
-.ctrls button{flex:1;padding:10px 6px;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--fg);font-size:13px;font-weight:600;cursor:pointer;font-family:var(--body)}
+.demo-body{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:14px}
+.pad{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}
+.pad button{font-family:var(--mono);font-size:18px;min-height:46px;border-radius:12px;border:1px solid var(--line);background:var(--bg);color:var(--fg);cursor:pointer;transition:transform .1s,border-color .15s}
+.pad button:hover{border-color:var(--accent)} .pad button:active{transform:scale(.94)}
+.ctrls{display:flex;gap:7px;margin-top:8px}
+.ctrls button{flex:1;min-height:44px;padding:0 6px;border-radius:12px;border:1px solid var(--line);background:var(--bg);color:var(--fg);font-size:13px;font-weight:600;cursor:pointer;font-family:var(--body)}
 .ctrls .call{background:var(--ok);border-color:var(--ok);color:#fff}
 .ctrls .hang{background:var(--bad);border-color:var(--bad);color:#fff}
 .ctrls button[aria-pressed="true"]{border-color:var(--accent);color:var(--accent)}
 .ctrls button:disabled{opacity:.45;cursor:not-allowed}
-.ext{display:flex;flex-direction:column;gap:6px;min-width:0}
-.ext h3{font-size:13px;font-family:var(--mono);font-weight:500;color:var(--muted);letter-spacing:.06em;text-transform:uppercase;margin-bottom:2px}
-.ext button{display:flex;justify-content:space-between;align-items:center;gap:8px;text-align:left;padding:9px 11px;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--fg);cursor:pointer;font-family:var(--body);font-size:14px}
+.ext{min-width:0}
+.ext h3{font-size:12px;font-family:var(--mono);font-weight:500;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px}
+.ext button{display:flex;justify-content:space-between;align-items:center;gap:8px;text-align:left;width:100%;min-height:46px;padding:0 12px;border-radius:12px;border:1px solid var(--line);background:var(--bg);color:var(--fg);cursor:pointer;font-family:var(--body);font-size:14px;font-weight:500}
 .ext button:hover{border-color:var(--accent)}
-.ext small{font-family:var(--mono);color:var(--muted);font-size:12px}
+.ext small{font-family:var(--mono);color:var(--muted);font-size:12px;font-weight:400}
 .s-free::before,.s-busy::before,.s-off::before{content:"";display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:7px}
 .s-free::before{background:var(--ok)} .s-busy::before{background:var(--bad)} .s-off::before{background:var(--muted)}
-.log{margin-top:12px;border-top:1px solid var(--line);padding-top:10px;font-family:var(--mono);font-size:12px;color:var(--muted);max-height:104px;overflow:auto}
+.log{margin-top:14px;border-top:1px solid var(--line);padding-top:10px;font-family:var(--mono);font-size:12px;color:var(--muted);max-height:104px;overflow:auto}
 .log div{display:flex;justify-content:space-between;gap:8px;padding:2px 0}
 .note{font-size:12px;color:var(--muted);margin-top:10px}
 
-/* serviços */
-.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:18px;margin-top:36px}
-.card{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:24px;min-width:0}
-.card h3{font-size:20px;margin-bottom:8px}
-.card p{color:var(--muted);font-size:15px}
-.card .k{font-family:var(--mono);font-size:12px;color:var(--accent);margin-bottom:12px;display:block}
+/* números */
+.stats{padding-block:0;margin-top:-28px;position:relative;z-index:2}
+.stats .wrap>div{display:grid;grid-template-columns:repeat(4,1fr);background:var(--surface);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow)}
+.stat{padding:24px 26px;border-right:1px solid var(--line);min-width:0}
+.stat:last-child{border-right:0}
+.stat b{display:block;font-family:var(--display);font-size:clamp(24px,3vw,34px);font-weight:800;letter-spacing:-.03em}
+.stat span{font-size:14px;color:var(--muted)}
+
+/* bento serviços */
+.bento{display:grid;grid-template-columns:repeat(6,1fr);gap:16px;margin-top:44px}
+.tile{background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:28px;min-width:0;transition:transform .2s,border-color .2s,box-shadow .2s;display:flex;flex-direction:column;gap:10px}
+.tile:hover{transform:translateY(-4px);border-color:var(--accent);box-shadow:var(--shadow)}
+.tile .k{font-family:var(--mono);font-size:12px;color:var(--accent);letter-spacing:.1em}
+.tile h3{font-size:24px;font-weight:700}
+.tile p{color:var(--muted);font-size:15px}
+.tile.w3{grid-column:span 3} .tile.w2{grid-column:span 2} .tile.w4{grid-column:span 4}
+.tile.hl{background:var(--screen);color:var(--screen-fg);border-color:var(--screen)}
+.tile.hl p{color:#A9B8CF} .tile.hl .k{color:#FF9A5E}
+.tile ul{margin:6px 0 0;padding:0;list-style:none;display:grid;gap:6px;font-size:14px}
+.tile ul li::before{content:"→";color:var(--accent);margin-right:8px}
 
 /* ConnectX */
-.cx{display:grid;grid-template-columns:1fr 1fr;gap:48px;align-items:start}
-.feat{list-style:none;padding:0;margin:28px 0 0;display:grid;gap:0}
-.feat li{display:grid;grid-template-columns:150px 1fr;gap:16px;padding:14px 0;border-top:1px solid var(--line);font-size:15px}
-.feat li:last-child{border-bottom:1px solid var(--line)}
-.feat b{font-family:var(--mono);font-weight:500;font-size:13px}
-.feat span{color:var(--muted)}
-.flow{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:22px;font-family:var(--mono);font-size:13px}
-.flow h3{font-family:var(--mono);font-size:12px;font-weight:500;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin-bottom:14px}
-.step{display:flex;gap:10px;align-items:center;padding:9px 12px;border:1px solid var(--line);border-radius:8px;background:var(--bg)}
-.arrow{height:14px;border-left:2px dashed var(--line);margin-left:20px}
-.step em{font-style:normal;color:var(--muted);margin-left:auto}
+.cx{display:grid;grid-template-columns:1fr 1fr;gap:56px;align-items:start}
+.feat{list-style:none;padding:0;margin:30px 0 0;display:grid;gap:10px}
+.feat li{display:grid;grid-template-columns:44px 1fr;gap:14px;padding:16px;border:1px solid var(--line);border-radius:14px;background:var(--surface);align-items:center}
+.feat .ic{width:44px;height:44px;border-radius:12px;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;font-family:var(--mono);font-size:13px;font-weight:600}
+.feat b{display:block;font-size:15px}
+.feat span.t{color:var(--muted);font-size:14px}
+.flow{background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:26px;font-family:var(--mono);font-size:13px;box-shadow:var(--shadow);position:sticky;top:96px}
+.flow h3{font-family:var(--mono);font-size:12px;font-weight:500;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin-bottom:16px}
+.step{display:flex;gap:10px;align-items:center;padding:11px 14px;border:1px solid var(--line);border-radius:12px;background:var(--bg)}
+.arrow{height:16px;border-left:2px dashed var(--line);margin-left:24px}
+.step em{font-style:normal;color:var(--accent);margin-left:auto;font-size:12px}
 
-/* automação */
-.auto{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:24px}
-.pane{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px;min-width:0;display:flex;flex-direction:column;gap:12px}
+/* integrações */
+.flowline{display:flex;gap:8px;flex-wrap:wrap;margin-top:22px;font-family:var(--mono);font-size:12px;color:var(--muted)}
+.flowline span{padding:6px 12px;border:1px solid var(--line);border-radius:99px;background:var(--surface)}
+.auto{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:28px}
+.pane{background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:18px;min-width:0;display:flex;flex-direction:column;gap:14px;box-shadow:var(--shadow)}
 .pane h3{font-family:var(--mono);font-size:12px;font-weight:500;color:var(--muted);letter-spacing:.08em;text-transform:uppercase}
-.chat{display:flex;flex-direction:column;gap:8px;min-height:190px;max-height:300px;overflow:auto}
-.msg{border-left:3px solid var(--line);padding:2px 0 2px 10px;font-size:14px}
+.chat{display:flex;flex-direction:column;gap:10px;min-height:200px;max-height:310px;overflow:auto}
+.msg{border-left:3px solid var(--line);padding:2px 0 2px 12px;font-size:14px}
 .msg b{font-size:13px} .msg small{font-family:var(--mono);color:var(--muted);margin-left:6px}
 .msg.reply{margin-left:22px;border-left-color:var(--accent)}
-.msg .img{display:inline-block;margin:4px 0 0 6px;padding:3px 8px;border-radius:4px;background:var(--band);font-family:var(--mono);font-size:12px}
+.msg .img{display:inline-block;margin:4px 0 0 6px;padding:3px 8px;border-radius:6px;background:var(--band);font-family:var(--mono);font-size:12px}
 .acts{display:flex;gap:8px;flex-wrap:wrap}
-.acts button{padding:8px 12px;border-radius:6px;border:1px solid var(--line);background:var(--bg);color:var(--fg);font-size:13px;font-weight:500;cursor:pointer;font-family:var(--body)}
+.acts button{min-height:40px;padding:0 14px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--fg);font-size:13px;font-weight:500;cursor:pointer;font-family:var(--body)}
 .acts button:hover:not(:disabled){border-color:var(--accent)}
 .acts button:disabled{opacity:.45;cursor:not-allowed}
-.tk{border:1px solid var(--line);border-radius:8px;padding:10px 12px;background:var(--bg);display:grid;gap:6px;min-width:0}
+.tk{border:1px solid var(--line);border-radius:12px;padding:12px 14px;background:var(--bg);display:grid;gap:8px;min-width:0}
 .tkh{display:flex;justify-content:space-between;gap:8px;font-weight:600;font-size:14px;flex-wrap:wrap}
 .tkh .id{font-family:var(--mono);font-size:12px;color:var(--muted);font-weight:400}
 .tk .c{font-size:13px;color:var(--muted);padding-left:10px;border-left:2px solid var(--line);overflow-wrap:anywhere}
 .tk .c q{quotes:none;display:block;font-size:12px;opacity:.8;border-left:2px solid var(--accent);padding-left:6px;margin-bottom:2px}
 .tk.new{border-color:var(--accent)}
-.flowline{display:flex;gap:8px;flex-wrap:wrap;margin-top:20px;font-family:var(--mono);font-size:12px;color:var(--muted)}
-.flowline span{padding:4px 10px;border:1px solid var(--line);border-radius:99px;background:var(--surface)}
-@media (max-width:900px){.auto{grid-template-columns:1fr}}
 
-/* portfolio */
+/* como funciona */
+.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:44px;counter-reset:s}
+.sp{position:relative;padding:28px;border:1px solid var(--line);border-radius:20px;background:var(--surface);min-width:0}
+.sp::before{counter-increment:s;content:counter(s);display:grid;place-items:center;width:38px;height:38px;border-radius:50%;background:var(--accent);color:var(--accent-fg);font-family:var(--mono);font-weight:600;margin-bottom:16px}
+.sp h3{font-size:21px;margin-bottom:8px}
+.sp p{color:var(--muted);font-size:15px}
+
+/* portfólio */
 .tabs{display:flex;gap:8px;flex-wrap:wrap;margin-top:28px}
-.tabs button{padding:8px 16px;border-radius:99px;border:1px solid var(--line);background:var(--surface);color:var(--fg);cursor:pointer;font-weight:500;font-size:14px;font-family:var(--body)}
+.tabs button{min-height:40px;padding:0 18px;border-radius:99px;border:1px solid var(--line);background:var(--surface);color:var(--fg);cursor:pointer;font-weight:500;font-size:14px;font-family:var(--body)}
+.tabs button:hover{border-color:var(--fg)}
 .tabs button[aria-pressed="true"]{background:var(--fg);color:var(--bg);border-color:var(--fg)}
-.proj{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;margin-top:20px}
-.proj div{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:16px;min-width:0}
-.proj b{display:block;font-family:var(--display);font-size:17px}
+.proj{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:14px;margin-top:22px}
+.proj div{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:20px;min-width:0;transition:transform .2s,border-color .2s}
+.proj div:hover{transform:translateY(-3px);border-color:var(--accent)}
+.proj b{display:block;font-family:var(--display);font-size:18px}
 .proj span{font-family:var(--mono);font-size:12px;color:var(--muted)}
 
+/* faq */
+.faq{max-width:820px;margin-top:36px;display:grid;gap:10px}
+details{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:0 20px}
+summary{cursor:pointer;list-style:none;display:flex;justify-content:space-between;gap:12px;align-items:center;min-height:56px;font-weight:600}
+summary::-webkit-details-marker{display:none}
+summary::after{content:"+";font-family:var(--mono);font-size:22px;color:var(--accent);transition:transform .2s}
+details[open] summary::after{transform:rotate(45deg)}
+details p{color:var(--muted);padding-bottom:18px;font-size:15px}
+
 /* contato */
-.contact{display:grid;grid-template-columns:1fr 1fr;gap:48px}
-.cinfo{display:grid;gap:14px;margin-top:24px}
+.cta-band{background:var(--screen);color:var(--screen-fg);border-radius:28px;padding:56px;display:grid;grid-template-columns:1fr 1fr;gap:48px;position:relative;overflow:hidden}
+.cta-band::after{content:"";position:absolute;width:420px;height:420px;right:-120px;bottom:-180px;border-radius:50%;background:radial-gradient(circle,var(--glow),transparent 65%)}
+.cta-band>*{position:relative;z-index:1;min-width:0}
+.cta-band .lead{color:#A9B8CF}
+.cinfo{display:grid;gap:14px;margin-top:26px}
 .cinfo div{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
-.cinfo span{font-family:var(--mono);font-size:12px;color:var(--muted);width:76px}
+.cinfo span{font-family:var(--mono);font-size:12px;color:#8FA1BC;width:76px}
 .cinfo code{font-family:var(--mono);font-size:15px;overflow-wrap:anywhere}
-.copy{padding:4px 10px;font-size:12px;border:1px solid var(--line);border-radius:6px;background:var(--surface);color:var(--fg);cursor:pointer}
-form{display:grid;gap:14px;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:24px;min-width:0}
+.copy{min-height:32px;padding:0 12px;font-size:12px;border:1px solid #2C3F5E;border-radius:8px;background:transparent;color:var(--screen-fg);cursor:pointer}
+.copy:hover{border-color:var(--accent)}
+form{display:grid;gap:14px;background:var(--surface);color:var(--fg);border-radius:20px;padding:26px;min-width:0}
 label{font-size:13px;font-weight:600;display:grid;gap:6px}
-input,textarea{font:inherit;padding:10px 12px;border-radius:6px;border:1px solid var(--line);background:var(--bg);color:var(--fg);width:100%}
+input,textarea{font:inherit;padding:12px 14px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--fg);width:100%}
+input:focus,textarea:focus{border-color:var(--accent);outline:none;box-shadow:0 0 0 3px var(--glow)}
 textarea{min-height:110px;resize:vertical}
 #ok{color:var(--ok);font-size:14px;font-weight:500}
-footer{border-top:1px solid var(--line);padding-block:28px;font-size:13px;color:var(--muted)}
-footer .wrap{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
 
-@media (max-width:900px){
-  .hero-grid,.cx,.contact{grid-template-columns:1fr;gap:32px}
-  section{padding-block:52px}
+footer{border-top:1px solid var(--line);padding-block:48px 36px;margin-top:24px}
+.fgrid{display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:32px}
+footer h4{font-family:var(--mono);font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:0 0 12px;font-weight:500}
+footer a{display:block;text-decoration:none;color:var(--muted);font-size:14px;padding:3px 0}
+footer a:hover{color:var(--fg)}
+footer p{color:var(--muted);font-size:14px;margin-top:10px;max-width:38ch}
+.copyr{margin-top:32px;padding-top:20px;border-top:1px solid var(--line);font-size:13px;color:var(--muted);display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.wa{position:fixed;right:max(16px,env(safe-area-inset-right,0px));bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:45;display:inline-flex;align-items:center;gap:8px;min-height:50px;padding:0 20px;border-radius:99px;background:var(--ok);color:#fff;font-weight:600;text-decoration:none;box-shadow:0 12px 28px -10px rgba(0,0,0,.5)}
+.hero .pill,.hero h1,.hero .lead,.hero .cta{animation:rise .6s both}
+.hero h1{animation-delay:.05s}.hero .lead{animation-delay:.12s}.hero .cta{animation-delay:.18s}
+@keyframes rise{from{transform:translateY(14px);opacity:.01}to{transform:none;opacity:1}}
+
+@media (max-width:980px){
+  section{padding-block:68px}
+  .hero-grid,.cx,.cta-band{grid-template-columns:1fr;gap:36px}
+  .cta-band{padding:32px 22px}
+  .flow{position:static}
+  .auto,.steps{grid-template-columns:1fr}
+  .stats .wrap>div{grid-template-columns:repeat(2,1fr)}
+  .stat:nth-child(2){border-right:0} .stat:nth-child(-n+2){border-bottom:1px solid var(--line)}
+  .bento{grid-template-columns:repeat(2,1fr)}
+  .tile.w3,.tile.w2,.tile.w4{grid-column:span 2}
+  .fgrid{grid-template-columns:1fr 1fr}
+  .burger{display:block}
+  nav{position:absolute;left:0;right:0;top:100%;background:var(--bg);border-bottom:1px solid var(--line);padding:8px max(16px,env(safe-area-inset-left,0px)) 16px;display:none}
+  nav.open{display:block}
+  nav ul{flex-direction:column}
+  .nav>.btn{display:none}
 }
 @media (max-width:520px){
   .demo-body{grid-template-columns:1fr}
-  .feat li{grid-template-columns:1fr;gap:2px}
-  nav{gap:14px}
+  .bento{grid-template-columns:1fr} .tile.w3,.tile.w2,.tile.w4{grid-column:auto}
+  .fgrid{grid-template-columns:1fr}
+  .stat{padding:18px}
+  .stat b{font-size:28px}
+  .wa span{display:none} .wa{padding:0 16px}
 }
-@media (prefers-reduced-motion:reduce){.dot.ring{animation:none}html{scroll-behavior:auto}}
+@media (prefers-reduced-motion:reduce){.dot.ring,.hero .pill,.hero h1,.hero .lead,.hero .cta{animation:none}html{scroll-behavior:auto}.tile,.btn,.proj div{transition:none}}
 </style>
 
 <header>
   <div class="wrap nav">
     <a class="logo" href="#inicio"><i></i>ConectPbx</a>
-    <nav aria-label="Principal">
-      <a href="#demo">Demonstração</a><a href="#servicos">Serviços</a><a href="#connectx">ConnectX</a><a href="#automacao">Integrações</a><a href="#portfolio">Portfólio</a><a href="#contato">Contato</a>
+    <nav id="menu" aria-label="Principal">
+      <ul>
+        <li><a class="l" href="#demo">Demonstração</a></li><li><a class="l" href="#servicos">Serviços</a></li><li><a class="l" href="#connectx">ConnectX</a></li><li><a class="l" href="#automacao">Integrações</a></li><li><a class="l" href="#portfolio">Portfólio</a></li><li><a class="l" href="#faq">Dúvidas</a></li>
+      </ul>
     </nav>
+    <a class="btn primary" href="#contato">Pedir proposta</a>
+    <button class="burger" id="burger" type="button" aria-label="Abrir menu" aria-expanded="false" aria-controls="menu">☰</button>
   </div>
 </header>
 
@@ -175,18 +251,14 @@ footer .wrap{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
 <section class="hero">
   <div class="wrap hero-grid">
     <div>
-      <div class="eyebrow">Telefonia IP e TI desde 2018</div>
-      <h1 style="margin-top:14px">O ramal da sua empresa, <em>em qualquer lugar</em>.</h1>
-      <p class="lead">PABX IP na nuvem, infraestrutura de TI, monitoramento e sistemas sob medida. Sua operação no ar em pouco tempo, com custo previsível.</p>
+      <span class="pill"><b>Novo</b> PABX IP na nuvem com portaria remota</span>
+      <h1>Telefonia e TI que <em>nunca saem do ar</em>.</h1>
+      <p class="lead">PABX IP, infraestrutura monitorada, integrações com CRM e mensagens corporativas. Sua operação funcionando rápido, com custo previsível.</p>
       <div class="cta">
-        <a class="btn primary" href="#demo">Testar a demonstração</a>
-        <a class="btn" href="#contato">Pedir uma proposta</a>
+        <a class="btn primary" href="#demo">Testar o softphone</a>
+        <a class="btn" href="#contato">Falar com um especialista</a>
       </div>
-      <div class="facts">
-        <div><b>2018</b>fundação</div>
-        <div><b>SP</b>Av. Aricanduva</div>
-        <div><b>24/7</b>monitoramento</div>
-      </div>
+      <div class="trust"><span>Ramal em qualquer lugar</span><span>Monitoramento 24/7</span><span>Suporte em São Paulo</span></div>
     </div>
 
     <div class="demo" id="demo" aria-labelledby="demo-t">
@@ -211,7 +283,7 @@ footer .wrap{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
         </div>
         <div class="ext">
           <h3>Ramais da equipe</h3>
-          <div id="exts" style="display:flex;flex-direction:column;gap:6px"></div>
+          <div id="exts" style="display:flex;flex-direction:column;gap:7px"></div>
         </div>
       </div>
       <div class="log" id="log" aria-label="Registro de chamadas"><div><span>Sem chamadas ainda</span><span>--:--</span></div></div>
@@ -220,46 +292,56 @@ footer .wrap{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
   </div>
 </section>
 
-<section class="band" id="servicos">
+<section class="stats" aria-label="Números">
+  <div class="wrap"><div>
+    <div class="stat"><b>2018</b><span>no mercado de telecom e TI</span></div>
+    <div class="stat"><b>24/7</b><span>monitoramento de infraestrutura</span></div>
+    <div class="stat"><b>Valor fixo</b><span>ligações ilimitadas para fixo e móvel</span></div>
+    <div class="stat"><b>100%</b><span>em nuvem, sem equipamento no escritório</span></div>
+  </div></div>
+</section>
+
+<section id="servicos">
   <div class="wrap">
     <div class="eyebrow">Serviços</div>
     <h2>Telecom e TI na mesma conta</h2>
     <p class="lead">Quem cuida do seu telefone também cuida da rede, dos servidores e dos sistemas que dependem deles.</p>
-    <div class="cards">
-      <article class="card"><span class="k">TELECOM</span><h3>Soluções em Telecom</h3><p>PABX IP, ramais remotos, números de outras cidades e ligações ilimitadas por valor fixo.</p></article>
-      <article class="card"><span class="k">TI</span><h3>Soluções em TI</h3><p>Disponibilidade de internet e infraestrutura adaptadas ao momento de cada negócio.</p></article>
-      <article class="card"><span class="k">MONITORAMENTO</span><h3>Infra monitorada</h3><p>Acompanhamento contínuo de conectividade, serviços e servidores, com alerta antes do cliente perceber.</p></article>
-      <article class="card"><span class="k">DESENVOLVIMENTO</span><h3>Sistemas e aplicativos</h3><p>Sites, sistemas web, apps e integrações construídos junto com a sua operação.</p></article>
+    <div class="bento">
+      <article class="tile w4 hl"><span class="k">TELECOM</span><h3>PABX IP e telefonia na nuvem</h3><p>Ramais remotos, números de outras cidades, vídeo e ligações ilimitadas por valor fixo.</p><ul><li>Ramal no computador ou no celular</li><li>Ligações internas sem custo</li><li>Portaria remota</li></ul></article>
+      <article class="tile w2"><span class="k">TI</span><h3>Infraestrutura</h3><p>Internet e infra adaptadas ao momento de cada negócio.</p></article>
+      <article class="tile w2"><span class="k">MONITORAMENTO</span><h3>Alerta antes do cliente</h3><p>Conectividade, serviços e servidores acompanhados o tempo todo.</p></article>
+      <article class="tile w2"><span class="k">CONSULTORIA</span><h3>Visão de fora</h3><p>Encontramos problemas ocultos e devolvemos tempo para a equipe.</p></article>
+      <article class="tile w2"><span class="k">DESENVOLVIMENTO</span><h3>Sistemas e apps</h3><p>Sites, sistemas web, aplicativos e integrações sob medida.</p></article>
     </div>
   </div>
 </section>
 
-<section id="connectx">
+<section class="band" id="connectx">
   <div class="wrap cx">
     <div>
       <div class="eyebrow">Plataforma</div>
       <h2>ConnectX, o PABX IP na nuvem</h2>
       <p class="lead">Sem equipamento para manter no escritório. O ramal vai com a pessoa, no computador ou no celular.</p>
       <ul class="feat">
-        <li><b>Ramal remoto</b><span>Atende de casa, da filial ou da rua, com o mesmo número.</span></li>
-        <li><b>Entre a equipe</b><span>Ligações internas sem custo.</span></li>
-        <li><b>Fixo e móvel</b><span>Chamadas ilimitadas para fixos e celulares por valor fixo.</span></li>
-        <li><b>Vídeo</b><span>Videoconferência integrada ao ramal.</span></li>
-        <li><b>Portaria remota</b><span>Atendimento e liberação de acesso à distância.</span></li>
+        <li><span class="ic">RAM</span><div><b>Ramal remoto</b><span class="t">Atenda de casa, da filial ou da rua, com o mesmo número.</span></div></li>
+        <li><span class="ic">INT</span><div><b>Ligações entre a equipe</b><span class="t">Sem custo, em qualquer unidade.</span></div></li>
+        <li><span class="ic">FIX</span><div><b>Fixo e móvel por valor fixo</b><span class="t">Chamadas ilimitadas, com número fixo de outras cidades.</span></div></li>
+        <li><span class="ic">VID</span><div><b>Videoconferência</b><span class="t">Integrada ao ramal.</span></div></li>
+        <li><span class="ic">POR</span><div><b>Portaria remota</b><span class="t">Atendimento e liberação de acesso à distância.</span></div></li>
       </ul>
     </div>
     <div class="flow" aria-label="Exemplo de fluxo de chamada">
       <h3>Exemplo de fluxo de chamada</h3>
       <div class="step">Cliente liga para 11 4000-0000<em>entrada</em></div><div class="arrow"></div>
       <div class="step">URA: 1 Comercial, 2 Suporte, 3 Financeiro<em>menu</em></div><div class="arrow"></div>
-      <div class="step">Fila Suporte, toca nos ramais 202 e 204<em>fila</em></div><div class="arrow"></div>
+      <div class="step">Fila Suporte toca nos ramais 202 e 204<em>fila</em></div><div class="arrow"></div>
       <div class="step">Sem resposta em 20 s, vai para o celular do plantão<em>desvio</em></div><div class="arrow"></div>
       <div class="step">Chamada gravada e registrada no relatório<em>registro</em></div>
     </div>
   </div>
 </section>
 
-<section class="band" id="automacao">
+<section id="automacao">
   <div class="wrap">
     <div class="eyebrow">Integrações</div>
     <h2>CRMs e mensagens corporativas trabalhando juntos</h2>
@@ -287,6 +369,18 @@ footer .wrap{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
   </div>
 </section>
 
+<section class="band" id="como">
+  <div class="wrap">
+    <div class="eyebrow">Como trabalhamos</div>
+    <h2>Do diagnóstico ao suporte contínuo</h2>
+    <div class="steps">
+      <div class="sp"><h3>Diagnóstico</h3><p>Entendemos como a sua empresa usa telefone, internet e sistemas hoje e onde estão os gargalos.</p></div>
+      <div class="sp"><h3>Implantação</h3><p>Configuramos ramais, integrações e monitoramento, com migração planejada para não parar a operação.</p></div>
+      <div class="sp"><h3>Acompanhamento</h3><p>Monitoramos, ajustamos e damos suporte conforme a sua empresa cresce.</p></div>
+    </div>
+  </div>
+</section>
+
 <section id="portfolio">
   <div class="wrap">
     <div class="eyebrow">Portfólio</div>
@@ -298,34 +392,61 @@ footer .wrap{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
   </div>
 </section>
 
-<section class="band" id="contato">
-  <div class="wrap contact">
-    <div>
-      <div class="eyebrow">Contato</div>
-      <h2>Fale com quem instala e mantém</h2>
-      <p class="lead">Conte o que a sua empresa usa hoje. Respondemos com um desenho da solução e o valor.</p>
-      <div class="cinfo">
-        <div><span>Telefone</span><code>+55 11 96948-9493</code><button class="copy" data-c="+55 11 96948-9493">Copiar</button></div>
-        <div><span>E-mail</span><code>conectpbx@gmail.com</code><button class="copy" data-c="conectpbx@gmail.com">Copiar</button></div>
-        <div><span>Endereço</span><code>Av. Aricanduva, São Paulo, SP</code></div>
-      </div>
-      <div class="cta"><a class="btn primary" href="https://wa.me/5511969489493?text=Ol%C3%A1%2C%20quero%20conhecer%20o%20ConnectX" target="_blank" rel="noopener">Chamar no WhatsApp</a></div>
+<section class="band" id="faq">
+  <div class="wrap">
+    <div class="eyebrow">Dúvidas</div>
+    <h2>Perguntas frequentes</h2>
+    <div class="faq">
+      <details><summary>Preciso comprar equipamento para usar o ConnectX?</summary><p>Não. O PABX fica na nuvem e o ramal funciona no computador ou no celular. Telefones IP físicos são opcionais.</p></details>
+      <details><summary>Consigo manter o número que a empresa já usa?</summary><p>Em geral sim. Fazemos a portabilidade e a migração de forma planejada. Confirmamos no diagnóstico.</p></details>
+      <details><summary>Como funcionam as ligações para fixos e celulares?</summary><p>Por valor fixo, com ligações ilimitadas. Os detalhes do plano são definidos na proposta.</p></details>
+      <details><summary>Vocês integram com o CRM e com o Slack que já usamos?</summary><p>Sim. Já conectamos Slack ao Zoho Desk e fazemos o mesmo com outros CRMs e aplicativos de mensagens corporativas.</p></details>
+      <details><summary>Como pedir uma proposta?</summary><p>Use o formulário de contato ou chame no WhatsApp. Respondemos com o desenho da solução e o valor.</p></details>
     </div>
-    <form id="form">
-      <label for="f-nome">Nome<input id="f-nome" required autocomplete="name"></label>
-      <label for="f-mail">E-mail<input id="f-mail" type="email" required autocomplete="email"></label>
-      <label for="f-ass">Assunto<input id="f-ass" required></label>
-      <label for="f-msg">Mensagem<textarea id="f-msg" required></textarea></label>
-      <button class="btn primary" type="submit">Enviar mensagem</button>
-      <p id="ok" hidden></p>
-    </form>
+  </div>
+</section>
+
+<section id="contato">
+  <div class="wrap">
+    <div class="cta-band">
+      <div>
+        <div class="eyebrow" style="color:#FF9A5E">Contato</div>
+        <h2>Fale com quem instala e mantém</h2>
+        <p class="lead">Conte o que a sua empresa usa hoje. Respondemos com um desenho da solução e o valor.</p>
+        <div class="cinfo">
+          <div><span>Telefone</span><code>+55 11 96948-9493</code><button class="copy" data-c="+55 11 96948-9493">Copiar</button></div>
+          <div><span>E-mail</span><code>conectpbx@gmail.com</code><button class="copy" data-c="conectpbx@gmail.com">Copiar</button></div>
+          <div><span>Endereço</span><code>Av. Aricanduva, São Paulo, SP</code></div>
+        </div>
+        <div class="cta"><a class="btn primary" href="https://wa.me/5511969489493?text=Ol%C3%A1%2C%20quero%20conhecer%20o%20ConnectX" target="_blank" rel="noopener">Chamar no WhatsApp</a></div>
+      </div>
+      <form id="form">
+        <label for="f-nome">Nome<input id="f-nome" required autocomplete="name"></label>
+        <label for="f-mail">E-mail<input id="f-mail" type="email" required autocomplete="email"></label>
+        <label for="f-ass">Assunto<input id="f-ass" required></label>
+        <label for="f-msg">Mensagem<textarea id="f-msg" required></textarea></label>
+        <button class="btn primary" type="submit">Enviar mensagem</button>
+        <p id="ok" hidden></p>
+      </form>
+    </div>
   </div>
 </section>
 </main>
 
-<footer><div class="wrap"><span>© 2018-2026 ConectPbx. Av. Aricanduva, São Paulo.</span><span>Termos de serviço · Política de privacidade</span></div></footer>
+<footer>
+  <div class="wrap">
+    <div class="fgrid">
+      <div><a class="logo" href="#inicio" style="display:flex;color:var(--fg)"><i></i>ConectPbx</a><p>Soluções e projetos em TI e Telecom desde 2018.</p></div>
+      <div><h4>Site</h4><a href="#servicos">Serviços</a><a href="#connectx">ConnectX</a><a href="#automacao">Integrações</a><a href="#portfolio">Portfólio</a></div>
+      <div><h4>Empresa</h4><a href="#faq">Dúvidas</a><a href="#contato">Contato</a><a href="#inicio">Termos de serviço</a><a href="#inicio">Política de privacidade</a></div>
+    </div>
+    <div class="copyr"><span>© 2018-2026 ConectPbx. Av. Aricanduva, São Paulo.</span><span>CNPJ e razão social: preencher</span></div>
+  </div>
+</footer>
+<a class="wa" href="https://wa.me/5511969489493?text=Ol%C3%A1%2C%20quero%20conhecer%20o%20ConnectX" target="_blank" rel="noopener" aria-label="Chamar no WhatsApp"><span>WhatsApp</span></a>
 
 <script>
+
 (function(){
   var $=function(i){return document.getElementById(i)};
   var EXT=[
@@ -487,5 +608,12 @@ footer .wrap{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
     var o=$('ok');o.hidden=false;
     o.textContent='Prévia: o formulário só envia depois de ligado ao seu servidor ou ao serviço de e-mail do site.';
   });
+})();
+
+(function(){
+  var b=document.getElementById('burger'),m=document.getElementById('menu');
+  if(!b||!m)return;
+  b.onclick=function(){var o=m.classList.toggle('open');b.setAttribute('aria-expanded',String(o));b.textContent=o?'✕':'☰'};
+  m.addEventListener('click',function(e){if(e.target.closest('a')){m.classList.remove('open');b.setAttribute('aria-expanded','false');b.textContent='☰'}});
 })();
 </script>

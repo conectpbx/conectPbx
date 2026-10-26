@@ -8,14 +8,16 @@ aplicativos de mensagens corporativas, portfólio e contato.
 
 | Seção | Conteúdo |
 |---|---|
-| Início | Apresentação e **softphone de demonstração** do ConnectX (simulado) |
+| Início | Hero, números da empresa e **softphone de demonstração** do ConnectX (simulado) |
 | Serviços | Telecom, TI, monitoramento e desenvolvimento |
 | ConnectX | Recursos do PABX IP e exemplo de fluxo de chamada (URA, fila, desvio, registro) |
 | Integrações | Demonstração interativa **Slack → Zoho Desk** e lista de outras integrações |
+| Como trabalhamos | Diagnóstico, implantação e acompanhamento |
 | Portfólio | Projetos com filtro (App, Pabx IP, Web, Integrações) |
+| Dúvidas | Perguntas frequentes (FAQ) |
 | Contato | Telefone, e-mail, WhatsApp e formulário |
 
-Tema claro e escuro automáticos (seguem o do aparelho) e layout responsivo.
+Tema claro e escuro automáticos (seguem o do aparelho), menu para celular, botão fixo de WhatsApp, alvos de toque de pelo menos 44 px, foco visível por teclado e redução de animações para quem prefere. Layout responsivo.
 
 ## Estrutura
 
@@ -59,6 +61,7 @@ Ver [docs/automacoes.md](docs/automacoes.md).
 
 - [ ] Adicionar logos de clientes e imagens do portfólio em `assets/img/`.
 - [ ] Ligar o formulário de contato a um servidor ou serviço de e-mail (hoje é só prévia).
+- [ ] Preencher CNPJ e razão social no rodapé e revisar as perguntas frequentes e os números da faixa de destaque.
 - [ ] Informar links reais de redes sociais, termos de serviço e política de privacidade.
 - [ ] Confirmar a lista de integrações oferecidas (Teams, WhatsApp Business, Zoho CRM, HubSpot, Pipedrive).
 - [ ] Trocar os números fictícios do exemplo de fluxo de chamada pelos reais.
