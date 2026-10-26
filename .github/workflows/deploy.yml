@@ -80,52 +80,30 @@ jobs:
             exit 1
           fi
 
+      - uses: actions/checkout@v4
+
+      - name: Preparar script remoto
+        id: prep
+        run: echo "b64=$(base64 -w0 deploy/remote-deploy.sh)" >> "$GITHUB_OUTPUT"
+
       - name: Atualizar o container no servidor
         uses: appleboy/ssh-action@v1.2.0
         env:
           GHCR_USER: ${{ github.actor }}
           GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           IMAGE: ${{ env.IMAGE }}
+          DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
+          DEPLOY_B64: ${{ steps.prep.outputs.b64 }}
         with:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_KEY }}
           port: ${{ secrets.SSH_PORT || 22 }}
-          envs: GHCR_USER,GHCR_TOKEN,IMAGE
-          script_stop: true
+          envs: GHCR_USER,GHCR_TOKEN,IMAGE,DEPLOY_PATH,DEPLOY_B64
           script: |
-            echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USER" --password-stdin
-            docker pull "$IMAGE:latest"
-            DEST="${{ secrets.DEPLOY_PATH }}"
-            if [ -z "$DEST" ]; then
-              DEST="$HOME/conectpbx"
-            fi
-            case "$DEST" in
-              "~"*) DEST="$HOME${DEST#"~"}" ;;
-            esac
-            echo "Usuario: $(whoami) | Pasta de deploy: $DEST"
-            if [ ! -d "$DEST" ]; then
-              echo "ERRO: a pasta $DEST nao existe no servidor. Crie-a e copie deploy/docker-compose.yml para ela."
-              exit 1
-            fi
-            cd "$DEST"
-            COMPOSE=""
-            for f in docker-compose.yml docker-compose.yaml compose.yml compose.yaml; do
-              if [ -z "$COMPOSE" ] && [ -f "$f" ]; then
-                COMPOSE="$f"
-              fi
-            done
-            if [ -z "$COMPOSE" ]; then
-              echo "ERRO: nenhum arquivo compose em $DEST. Conteudo da pasta:"
-              ls -la
-              exit 1
-            fi
-            if ! docker compose version; then
-              echo "ERRO: o plugin docker compose nao esta instalado no servidor."
-              exit 1
-            fi
-            echo "Usando $COMPOSE"
-            docker compose -f "$COMPOSE" up -d --remove-orphans
-            docker compose -f "$COMPOSE" ps
-            docker image prune -f
-            docker logout ghcr.io
+            echo "$DEPLOY_B64" | base64 -d > /tmp/conectpbx-deploy.sh
+            GHCR_USER="$GHCR_USER" GHCR_TOKEN="$GHCR_TOKEN" IMAGE="$IMAGE" DEPLOY_PATH="$DEPLOY_PATH" bash /tmp/conectpbx-deploy.sh 2>&1
+            rc=$?
+            rm -f /tmp/conectpbx-deploy.sh
+            echo "codigo de saida do deploy: $rc"
+            exit $rc
