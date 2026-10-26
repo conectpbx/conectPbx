@@ -27,7 +27,7 @@ assets/img/       logos de clientes e imagens do portfólio (adicionar)
 docs/             documentação adicional
 ```
 
-Não há build nem dependências. As fontes (Bricolage Grotesque, IBM Plex) vêm do Google Fonts.
+O site em si não tem build nem dependências; o Docker só empacota os arquivos. As fontes (Bricolage Grotesque, IBM Plex) vêm do Google Fonts.
 
 ## Como publicar
 
@@ -35,6 +35,16 @@ Não há build nem dependências. As fontes (Bricolage Grotesque, IBM Plex) vêm
 2. Envie `index.html` e a pasta `assets/` para a raiz do servidor (ou ative o GitHub Pages em
    *Settings → Pages → Branch: main*).
 3. Para testar localmente: `python3 -m http.server 8080` e abra `http://localhost:8080`.
+
+## Deploy automático
+
+Um push na `main` constrói a imagem Docker, testa, publica no GitHub Container Registry e atualiza o container no servidor por SSH. Passo a passo e secrets em [docs/deploy.md](docs/deploy.md).
+
+```
+Dockerfile, nginx.conf   imagem do site (Nginx)
+.github/workflows/       pipeline de build, teste e deploy
+deploy/docker-compose.yml  referência para o servidor
+```
 
 ## Demonstrações
 

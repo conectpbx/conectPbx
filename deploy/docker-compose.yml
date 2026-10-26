@@ -1,0 +1,9 @@
+# Arquivo de referência para o servidor. Copie para o servidor e ajuste a porta e a rede
+# (por exemplo, a rede do seu proxy reverso, como Traefik ou Nginx Proxy Manager).
+services:
+  site:
+    image: ghcr.io/conectpbx/conectpbx:latest
+    container_name: conectpbx-site
+    restart: unless-stopped
+    ports:
+      - "8080:80"
