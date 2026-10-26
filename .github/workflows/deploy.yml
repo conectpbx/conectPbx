@@ -98,7 +98,27 @@ jobs:
             docker pull "$IMAGE:latest"
             DEST="${{ secrets.DEPLOY_PATH }}"
             [ -z "$DEST" ] && DEST="$HOME/conectpbx"
+            DEST="${DEST/#\~/$HOME}"
+            echo "Pasta de deploy: $DEST"
+            if [ ! -d "$DEST" ]; then
+              echo "ERRO: a pasta $DEST não existe no servidor. Crie-a e copie deploy/docker-compose.yml para ela." >&2
+              exit 1
+            fi
             cd "$DEST"
-            docker compose up -d --remove-orphans
+            COMPOSE=""
+            for f in docker-compose.yml docker-compose.yaml compose.yml compose.yaml; do
+              [ -f "$f" ] && COMPOSE="$f" && break
+            done
+            if [ -z "$COMPOSE" ]; then
+              echo "ERRO: nenhum arquivo docker-compose.yml em $DEST." >&2
+              ls -la >&2
+              exit 1
+            fi
+            if ! docker compose version >/dev/null 2>&1; then
+              echo "ERRO: o plugin 'docker compose' não está instalado no servidor." >&2
+              exit 1
+            fi
+            docker compose -f "$COMPOSE" up -d --remove-orphans 2>&1
+            docker compose -f "$COMPOSE" ps
             docker image prune -f
             docker logout ghcr.io
