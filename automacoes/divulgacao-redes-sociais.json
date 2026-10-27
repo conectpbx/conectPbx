@@ -1,0 +1,632 @@
+{
+  "name": "Divulgação em Redes Sociais (ConectPbx)",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 10 * * 1,3,5"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ],
+      "id": "n01",
+      "name": "Agenda — Seg/Qua/Sex 10h"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        160
+      ],
+      "id": "n02",
+      "name": "Manual — Gerar agora"
+    },
+    {
+      "parameters": {
+        "jsCode": "\nconst TEMAS = [\n  { id: 'ramal-remoto', titulo: 'Ramal em qualquer lugar', fatos: 'PABX IP na nuvem (ConnectX). O ramal funciona no computador ou no celular, com o mesmo número, de casa, da filial ou da rua. Sem equipamento para manter no escritório.' },\n  { id: 'fixo-movel', titulo: 'Ligações por valor fixo', fatos: 'Ligações ilimitadas para fixos e celulares por valor fixo, ligações internas sem custo entre a equipe e número fixo de outras cidades.' },\n  { id: 'slack-zoho', titulo: 'Slack + Zoho Desk', fatos: 'Integração que transforma conversas do Slack em tickets e comentários no Zoho Desk. Conversas normais ficam em um ticket por canal por dia; uma thread abre um ticket próprio com o título da mensagem original. Imagens viram anexos.' },\n  { id: 'monitoramento', titulo: 'Monitoramento 24/7', fatos: 'Monitoramento contínuo de conectividade, serviços e servidores, para agir antes de o cliente perceber o problema.' },\n  { id: 'consultoria', titulo: 'Consultoria de TI', fatos: 'Visão externa, identificação de problemas ocultos e tempo devolvido para a equipe.' },\n  { id: 'integracoes-crm', titulo: 'CRM e mensagens corporativas', fatos: 'Integrações entre CRMs e aplicativos de mensagens corporativas, sem copiar e colar entre sistemas.' },\n  { id: 'portaria', titulo: 'Portaria remota', fatos: 'Atendimento e liberação de acesso à distância integrados ao PABX IP.' },\n  { id: 'sistemas', titulo: 'Sistemas e aplicativos sob medida', fatos: 'Desenvolvimento de sites, sistemas web, aplicativos e integrações construídos junto com a operação do cliente.' }\n];\n\n// Rodízio simples guardado no próprio workflow (funciona nas execuções automáticas).\nconst sd = $getWorkflowStaticData('global');\nconst i = Number.isInteger(sd.temaIdx) ? sd.temaIdx : 0;\nconst tema = TEMAS[i % TEMAS.length];\nsd.temaIdx = (i + 1) % TEMAS.length;\nconst site = String(($vars['SITE_URL'] ?? 'https://conectxip.com')).replace(/\\/+$/, '');\nreturn [{ json: { tema, site, imagem: String($vars['SOCIAL_IMAGE_URL'] ?? '').trim() } }];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        260,
+        80
+      ],
+      "id": "n03",
+      "name": "Escolhe Tema (rodízio)"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "anthropic-version",
+              "value": "2023-06-01"
+            },
+            {
+              "name": "content-type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ { model: $vars.SOCIAL_AI_MODEL || 'claude-sonnet-5-5', max_tokens: 1500, messages: [{ role: 'user', content: \"Você escreve posts de redes sociais em português do Brasil para a ConectPbx, empresa de telefonia IP e TI de São Paulo (PABX IP ConnectX, monitoramento, consultoria, integrações e desenvolvimento).\\nTema do post: {{TITULO}}\\nFatos permitidos (use apenas isto): {{FATOS}}\\n\\nRegras:\\n- Não invente números, preços, prazos, clientes, prêmios ou depoimentos.\\n- Tom profissional e direto, sem exageros, sem emojis em excesso (no máximo 2).\\n- Cada versão deve terminar convidando a conhecer o site, sem escrever o endereço (ele será adicionado depois).\\n- LinkedIn: 500 a 900 caracteres, com abertura que chame atenção.\\n- Facebook: 250 a 450 caracteres.\\n- Instagram: 300 a 600 caracteres.\\n- hashtags: de 4 a 6, sem espaços, sem \\\"#\\\" no início de cada item.\\n\\nResponda somente com JSON válido neste formato, sem texto fora dele:\\n{\\\"linkedin\\\":\\\"...\\\",\\\"facebook\\\":\\\"...\\\",\\\"instagram\\\":\\\"...\\\",\\\"hashtags\\\":[\\\"...\\\",\\\"...\\\"]}\".replace('{{TITULO}}', $json.tema.titulo).replace('{{FATOS}}', $json.tema.fatos) }] } }}",
+        "options": {
+          "timeout": 60000
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        520,
+        80
+      ],
+      "id": "n04",
+      "name": "Claude — Gerar Textos",
+      "onError": "continueRegularOutput",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "",
+          "name": "Anthropic API (x-api-key)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "\nconst base = $('Escolhe Tema (rodízio)').first().json;\nconst { tema, site, imagem } = base;\nconst resp = $input.first().json;\n\n// 1) Tenta ler o JSON gerado pela IA\nlet ia = null;\ntry {\n  const texto = (resp.content || []).map(c => c.text || '').join('').trim()\n    .replace(/^```(?:json)?/i, '').replace(/```$/, '').trim();\n  const j = JSON.parse(texto);\n  if (j && j.linkedin && j.facebook && j.instagram) ia = j;\n} catch (e) { ia = null; }\n\n// 2) Plano B sem IA: texto fixo e seguro, só com os fatos do tema\nconst cta = 'Conheça a ConectPbx.';\nconst plano = {\n  linkedin: `${tema.titulo}\\n\\n${tema.fatos}\\n\\n${cta}`,\n  facebook: `${tema.titulo}: ${tema.fatos} ${cta}`,\n  instagram: `${tema.titulo}\\n\\n${tema.fatos}\\n\\n${cta}`,\n  hashtags: ['telefoniaIP', 'PABX', 'TI', 'ConectPbx']\n};\nconst src = ia || plano;\nconst fonte = ia ? 'ia' : 'plano_b';\n\nconst tags = (Array.isArray(src.hashtags) ? src.hashtags : plano.hashtags)\n  .map(t => String(t).replace(/[^\\p{L}\\p{N}_]/gu, '')).filter(Boolean).slice(0, 6)\n  .map(t => '#' + t).join(' ');\n\nconst url = rede => `${site}/?utm_source=${rede}&utm_medium=social&utm_campaign=${encodeURIComponent(tema.id)}`;\nconst corta = (s, n) => { s = String(s); return s.length <= n ? s : s.slice(0, n - 1).trimEnd() + '…'; };\n\nconst linkedin  = corta(`${src.linkedin}\\n\\n${url('linkedin')}\\n\\n${tags}`, 2900);\nconst facebook  = corta(`${src.facebook}\\n\\n${tags}`, 1800);\nconst instagram = corta(`${src.instagram}\\n\\nLink na bio.\\n\\n${tags}`, 2100);\n\nreturn [{ json: {\n  tema, fonte, imagem, tags,\n  linkedin, facebook, instagram,\n  facebookLink: url('facebook'),\n  temImagem: /^https:\\/\\//i.test(imagem),\n  aprovacao: String($vars['SOCIAL_APPROVAL'] ?? 'true').toLowerCase() === 'true'\n} }];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        780,
+        80
+      ],
+      "id": "n05",
+      "name": "Monta Posts"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "c1",
+              "leftValue": "={{ $json.aprovacao }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1040,
+        80
+      ],
+      "id": "n06",
+      "name": "IF — Exige Aprovação?"
+    },
+    {
+      "parameters": {
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "={{ $vars.SOCIAL_SLACK_CHANNEL }}",
+          "mode": "id"
+        },
+        "text": "={{ '*Post para aprovar* (' + $json.tema.titulo + ' · ' + $json.fonte + ')\\n\\n*LinkedIn*\\n' + $json.linkedin + '\\n\\n*Facebook*\\n' + $json.facebook + '\\n\\n*Instagram*\\n' + $json.instagram + '\\n\\n*Aprovar e publicar:* ' + $execution.resumeUrl }}",
+        "otherOptions": {}
+      },
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.3,
+      "position": [
+        1300,
+        -60
+      ],
+      "id": "n07",
+      "name": "Slack — Pedir Aprovação",
+      "onError": "continueRegularOutput",
+      "credentials": {
+        "slackApi": {
+          "id": "",
+          "name": "Slack"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resume": "webhook",
+        "httpMethod": "GET",
+        "options": {},
+        "limitWaitTime": true,
+        "limitType": "afterTimeInterval",
+        "resumeAmount": 48,
+        "resumeUnit": "hours"
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        1560,
+        -60
+      ],
+      "id": "n08",
+      "name": "Aguarda Aprovação (até 48h)",
+      "webhookId": "aprovar-post-social"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "c2",
+              "leftValue": "={{ !!$json.headers }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1820,
+        -60
+      ],
+      "id": "n09",
+      "name": "IF — Foi Aprovado?"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        2080,
+        -160
+      ],
+      "id": "n10",
+      "name": "Fim — Não Aprovado"
+    },
+    {
+      "parameters": {
+        "postAs": "organization",
+        "organization": "={{ $vars.LINKEDIN_ORG_ID }}",
+        "text": "={{ $('Monta Posts').first().json.linkedin }}",
+        "shareMediaCategory": "NONE",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.linkedIn",
+      "typeVersion": 1,
+      "position": [
+        1300,
+        200
+      ],
+      "id": "n11",
+      "name": "LinkedIn — Publicar",
+      "onError": "continueRegularOutput",
+      "credentials": {
+        "linkedInOAuth2Api": {
+          "id": "",
+          "name": "LinkedIn Page"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "graphApiVersion": "v21.0",
+        "node": "={{ $vars.FACEBOOK_PAGE_ID }}",
+        "edge": "feed",
+        "httpRequestMethod": "POST",
+        "options": {
+          "queryParameters": {
+            "parameter": [
+              {
+                "name": "message",
+                "value": "={{ $('Monta Posts').first().json.facebook }}"
+              },
+              {
+                "name": "link",
+                "value": "={{ $('Monta Posts').first().json.facebookLink }}"
+              }
+            ]
+          }
+        }
+      },
+      "type": "n8n-nodes-base.facebookGraphApi",
+      "typeVersion": 1,
+      "position": [
+        1560,
+        200
+      ],
+      "id": "n12",
+      "name": "Facebook — Publicar na Página",
+      "onError": "continueRegularOutput",
+      "credentials": {
+        "facebookGraphApi": {
+          "id": "",
+          "name": "Facebook Graph (token da Página)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "c3",
+              "leftValue": "={{ $('Monta Posts').first().json.temImagem }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1820,
+        200
+      ],
+      "id": "n13",
+      "name": "IF — Tem Imagem?"
+    },
+    {
+      "parameters": {
+        "graphApiVersion": "v21.0",
+        "node": "={{ $vars.INSTAGRAM_USER_ID }}",
+        "edge": "media",
+        "httpRequestMethod": "POST",
+        "options": {
+          "queryParameters": {
+            "parameter": [
+              {
+                "name": "image_url",
+                "value": "={{ $('Monta Posts').first().json.imagem }}"
+              },
+              {
+                "name": "caption",
+                "value": "={{ $('Monta Posts').first().json.instagram }}"
+              }
+            ]
+          }
+        }
+      },
+      "type": "n8n-nodes-base.facebookGraphApi",
+      "typeVersion": 1,
+      "position": [
+        2080,
+        120
+      ],
+      "id": "n14",
+      "name": "Instagram — Criar Mídia",
+      "onError": "continueRegularOutput",
+      "credentials": {
+        "facebookGraphApi": {
+          "id": "",
+          "name": "Facebook Graph (token da Página)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "graphApiVersion": "v21.0",
+        "node": "={{ $vars.INSTAGRAM_USER_ID }}",
+        "edge": "media_publish",
+        "httpRequestMethod": "POST",
+        "options": {
+          "queryParameters": {
+            "parameter": [
+              {
+                "name": "creation_id",
+                "value": "={{ $json.id }}"
+              }
+            ]
+          }
+        }
+      },
+      "type": "n8n-nodes-base.facebookGraphApi",
+      "typeVersion": 1,
+      "position": [
+        2340,
+        120
+      ],
+      "id": "n15",
+      "name": "Instagram — Publicar",
+      "onError": "continueRegularOutput",
+      "credentials": {
+        "facebookGraphApi": {
+          "id": "",
+          "name": "Facebook Graph (token da Página)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "\nconst get = nome => { try { return $(nome).first().json; } catch (e) { return null; } };\nconst ok = (j, campo) => !!(j && !j.error && !j.errorMessage && (campo ? j[campo] : true));\nconst li = get('LinkedIn — Publicar');\nconst fb = get('Facebook — Publicar na Página');\nconst igc = get('Instagram — Criar Mídia');\nconst igp = get('Instagram — Publicar');\nconst post = get('Monta Posts');\n\nconst linhas = [\n  `LinkedIn: ${ok(li) ? 'publicado' : 'FALHOU'}`,\n  `Facebook: ${ok(fb, 'id') ? 'publicado' : 'FALHOU'}`,\n  `Instagram: ${post && !post.temImagem ? 'ignorado (sem imagem em SOCIAL_IMAGE_URL)' : (ok(igc, 'id') && ok(igp, 'id') ? 'publicado' : 'FALHOU')}`\n];\nreturn [{ json: { tema: post?.tema?.titulo, fonte: post?.fonte, resumo: linhas.join('\\n'), houveFalha: linhas.some(l => l.includes('FALHOU')) } }];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2600,
+        200
+      ],
+      "id": "n16",
+      "name": "Resumo da Publicação"
+    },
+    {
+      "parameters": {
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "={{ $vars.SOCIAL_SLACK_CHANNEL }}",
+          "mode": "id"
+        },
+        "text": "={{ ($json.houveFalha ? ':warning: ' : ':white_check_mark: ') + 'Divulgação: ' + $json.tema + ' (' + $json.fonte + ')\\n' + $json.resumo }}",
+        "otherOptions": {}
+      },
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.3,
+      "position": [
+        2860,
+        200
+      ],
+      "id": "n17",
+      "name": "Slack — Avisar Resultado",
+      "onError": "continueRegularOutput",
+      "credentials": {
+        "slackApi": {
+          "id": "",
+          "name": "Slack"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Agenda — Seg/Qua/Sex 10h": {
+      "main": [
+        [
+          {
+            "node": "Escolhe Tema (rodízio)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Manual — Gerar agora": {
+      "main": [
+        [
+          {
+            "node": "Escolhe Tema (rodízio)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Escolhe Tema (rodízio)": {
+      "main": [
+        [
+          {
+            "node": "Claude — Gerar Textos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Claude — Gerar Textos": {
+      "main": [
+        [
+          {
+            "node": "Monta Posts",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Monta Posts": {
+      "main": [
+        [
+          {
+            "node": "IF — Exige Aprovação?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF — Exige Aprovação?": {
+      "main": [
+        [
+          {
+            "node": "Slack — Pedir Aprovação",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "LinkedIn — Publicar",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Slack — Pedir Aprovação": {
+      "main": [
+        [
+          {
+            "node": "Aguarda Aprovação (até 48h)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aguarda Aprovação (até 48h)": {
+      "main": [
+        [
+          {
+            "node": "IF — Foi Aprovado?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF — Foi Aprovado?": {
+      "main": [
+        [
+          {
+            "node": "LinkedIn — Publicar",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Fim — Não Aprovado",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "LinkedIn — Publicar": {
+      "main": [
+        [
+          {
+            "node": "Facebook — Publicar na Página",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Facebook — Publicar na Página": {
+      "main": [
+        [
+          {
+            "node": "IF — Tem Imagem?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF — Tem Imagem?": {
+      "main": [
+        [
+          {
+            "node": "Instagram — Criar Mídia",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Resumo da Publicação",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Instagram — Criar Mídia": {
+      "main": [
+        [
+          {
+            "node": "Instagram — Publicar",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Instagram — Publicar": {
+      "main": [
+        [
+          {
+            "node": "Resumo da Publicação",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Resumo da Publicação": {
+      "main": [
+        [
+          {
+            "node": "Slack — Avisar Resultado",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "America/Sao_Paulo"
+  },
+  "pinData": {},
+  "meta": {
+    "templateCredsSetupCompleted": false
+  }
+}
