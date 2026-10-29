@@ -22,7 +22,8 @@ Importe em *n8n → Workflows → Import from file*. Depois selecione as credenc
 | `SOCIAL_SLACK_CHANNEL` | ID do canal do Slack para aprovação e avisos |
 | `SOCIAL_IMAGE_URL` | imagem pública (https) para o Instagram. Sem ela, o Instagram é ignorado |
 | `SOCIAL_AI_MODEL` | opcional, modelo do Claude (padrão `claude-sonnet-5-5`) |
-| `LINKEDIN_ORG_ID` | ID numérico da página da empresa no LinkedIn |
+| `LINKEDIN_AUTHOR_URN` | quem publica: `urn:li:person:XXXX` (perfil) ou `urn:li:organization:NNNN` (página) |
+| `LINKEDIN_API_VERSION` | opcional, versão da API do LinkedIn no formato `AAAAMM` (padrão `202510`) |
 | `FACEBOOK_PAGE_ID` | ID da Página do Facebook |
 | `INSTAGRAM_USER_ID` | ID da conta profissional do Instagram (Graph API) |
 
@@ -30,7 +31,14 @@ Importe em *n8n → Workflows → Import from file*. Depois selecione as credenc
 
 - **Anthropic:** credencial *Header Auth* com nome `x-api-key` e a chave da API como valor.
 - **Slack:** a mesma do workflow de tickets. O app precisa do escopo `chat:write` e estar no canal.
-- **LinkedIn:** OAuth2 com permissão `w_organization_social`. Postar como página exige aprovação do produto *Community Management API* no LinkedIn Developers e que o usuário seja administrador da página.
+- **LinkedIn (HTTP Request + OAuth2 genérica):** o nó usa a API `POST /rest/posts`. Crie uma credencial *OAuth2 API* no n8n com:
+  - Authorization URL: `https://www.linkedin.com/oauth/v2/authorization`
+  - Access Token URL: `https://www.linkedin.com/oauth/v2/accessToken`
+  - Scope: `openid profile w_member_social` (perfil) ou `w_organization_social` (página, só com *Community Management API* aprovado)
+  - Authentication: *Body*
+  - Copie a *OAuth Redirect URL* para *Authorized redirect URLs* do app no LinkedIn.
+  - **Perfil pessoal:** no app, ative os produtos *Share on LinkedIn* e *Sign In with LinkedIn using OpenID Connect*. Para descobrir o seu ID, faça `GET https://api.linkedin.com/v2/userinfo` com a credencial; o campo `sub` é o ID, e a variável fica `urn:li:person:<sub>`.
+  - **Página da empresa:** exige o produto *Community Management API* aprovado e que você seja administrador da página. O erro `unauthorized_scope_error` indica que isso ainda não foi liberado.
 - **Facebook e Instagram:** crie um app na Meta for Developers e gere um token **de Página** de longa duração com `pages_manage_posts`, `pages_read_engagement`, `instagram_basic` e `instagram_content_publish`. A conta do Instagram precisa ser profissional e estar ligada à Página.
 
 ## Antes de ligar

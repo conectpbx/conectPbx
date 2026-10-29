@@ -228,14 +228,38 @@
     },
     {
       "parameters": {
-        "postAs": "organization",
-        "organization": "={{ $vars.LINKEDIN_ORG_ID }}",
-        "text": "={{ $('Monta Posts').first().json.linkedin }}",
-        "shareMediaCategory": "NONE",
-        "additionalFields": {}
+        "method": "POST",
+        "url": "https://api.linkedin.com/rest/posts",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "oAuth2Api",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "LinkedIn-Version",
+              "value": "={{ $json.version }}"
+            },
+            {
+              "name": "X-Restli-Protocol-Version",
+              "value": "2.0.0"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json.body }}",
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "responseFormat": "text"
+            }
+          },
+          "timeout": 30000
+        }
       },
-      "type": "n8n-nodes-base.linkedIn",
-      "typeVersion": 1,
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
       "position": [
         1300,
         200
@@ -244,9 +268,9 @@
       "name": "LinkedIn — Publicar",
       "onError": "continueRegularOutput",
       "credentials": {
-        "linkedInOAuth2Api": {
+        "oAuth2Api": {
           "id": "",
-          "name": "LinkedIn Page"
+          "name": "LinkedIn (OAuth2 genérica)"
         }
       }
     },
@@ -430,6 +454,19 @@
           "name": "Slack"
         }
       }
+    },
+    {
+      "parameters": {
+        "jsCode": "\n// Texto no formato do LinkedIn (\"little text\"): caracteres reservados precisam de barra.\n// O \"#\" fica sem escape para as hashtags funcionarem.\nconst post = $('Monta Posts').first().json;\nconst escapa = s => String(s).replace(/([\\\\|{}@\\[\\]()<>*_~])/g, '\\\\$1');\nconst author = String($vars['LINKEDIN_AUTHOR_URN'] ?? '').trim();\nif (!/^urn:li:(person|organization):[A-Za-z0-9_-]+$/.test(author))\n  throw new Error('Defina a variável LINKEDIN_AUTHOR_URN, por exemplo urn:li:person:AbC123 ou urn:li:organization:12345678');\nreturn [{ json: {\n  author,\n  version: String($vars['LINKEDIN_API_VERSION'] ?? '202510'),\n  body: {\n    author,\n    commentary: escapa(post.linkedin).slice(0, 3000),\n    visibility: 'PUBLIC',\n    distribution: { feedDistribution: 'MAIN_FEED', targetEntities: [], thirdPartyDistributionChannels: [] },\n    lifecycleState: 'PUBLISHED',\n    isReshareDisabledByAuthor: false\n  }\n} }];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1300,
+        370
+      ],
+      "id": "n18",
+      "name": "LinkedIn — Preparar Texto"
     }
   ],
   "connections": {
@@ -499,7 +536,7 @@
         ],
         [
           {
-            "node": "LinkedIn — Publicar",
+            "node": "LinkedIn — Preparar Texto",
             "type": "main",
             "index": 0
           }
@@ -532,7 +569,7 @@
       "main": [
         [
           {
-            "node": "LinkedIn — Publicar",
+            "node": "LinkedIn — Preparar Texto",
             "type": "main",
             "index": 0
           }
@@ -613,6 +650,17 @@
         [
           {
             "node": "Slack — Avisar Resultado",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "LinkedIn — Preparar Texto": {
+      "main": [
+        [
+          {
+            "node": "LinkedIn — Publicar",
             "type": "main",
             "index": 0
           }
