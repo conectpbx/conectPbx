@@ -418,7 +418,7 @@
     },
     {
       "parameters": {
-        "jsCode": "\nconst get = nome => { try { return $(nome).first().json; } catch (e) { return null; } };\nconst ok = (j, campo) => !!(j && !j.error && !j.errorMessage && (campo ? j[campo] : true));\nconst li = get('LinkedIn — Publicar');\nconst fb = get('Facebook — Publicar na Página');\nconst igc = get('Instagram — Criar Mídia');\nconst igp = get('Instagram — Publicar');\nconst post = get('Monta Posts');\n\nconst linhas = [\n  `LinkedIn: ${ok(li) ? 'publicado' : 'FALHOU'}`,\n  `Facebook: ${ok(fb, 'id') ? 'publicado' : 'FALHOU'}`,\n  `Instagram: ${post && !post.temImagem ? 'ignorado (sem imagem em SOCIAL_IMAGE_URL)' : (ok(igc, 'id') && ok(igp, 'id') ? 'publicado' : 'FALHOU')}`\n];\nconst houveFalha = linhas.some(l => l.includes('FALHOU'));\nconst html = `<div style=\"font-family:Arial,sans-serif;color:#0c1729\"><p><b>${houveFalha ? 'Alguma rede falhou' : 'Divulgação concluída'}</b>: ${String(post?.tema?.titulo || '')}</p><p style=\"white-space:pre-line\">${linhas.join('\\n')}</p>${houveFalha ? '<p style=\"color:#667;font-size:12px\">Confira a execução no n8n para ver o erro de cada rede.</p>' : ''}</div>`;\nreturn [{ json: { tema: post?.tema?.titulo, fonte: post?.fonte, resumo: linhas.join('\\n'), houveFalha, html } }];\n"
+        "jsCode": "\nconst get = nome => { try { return $(nome).first().json; } catch (e) { return null; } };\nconst ok = (j, campo) => !!(j && !j.error && !j.errorMessage && (campo ? j[campo] : true));\nconst li = get('LinkedIn — Publicar');\nconst fb = get('Facebook — Publicar na Página');\nconst igc = get('Instagram — Criar Mídia');\nconst igp = get('Instagram — Publicar');\nconst post = get('Monta Posts');\nconst prep = get('LinkedIn — Preparar Texto');\n\nconst linhas = [\n  `LinkedIn: ${(prep && prep.pular) ? 'FALHOU (' + prep.motivo + ')' : (ok(li) ? 'publicado' : 'FALHOU')}`,\n  `Facebook: ${ok(fb, 'id') ? 'publicado' : 'FALHOU'}`,\n  `Instagram: ${post && !post.temImagem ? 'ignorado (sem imagem em SOCIAL_IMAGE_URL)' : (ok(igc, 'id') && ok(igp, 'id') ? 'publicado' : 'FALHOU')}`\n];\nconst houveFalha = linhas.some(l => l.includes('FALHOU'));\nconst html = `<div style=\"font-family:Arial,sans-serif;color:#0c1729\"><p><b>${houveFalha ? 'Alguma rede falhou' : 'Divulgação concluída'}</b>: ${String(post?.tema?.titulo || '')}</p><p style=\"white-space:pre-line\">${linhas.join('\\n')}</p>${houveFalha ? '<p style=\"color:#667;font-size:12px\">Confira a execução no n8n para ver o erro de cada rede.</p>' : ''}</div>`;\nreturn [{ json: { tema: post?.tema?.titulo, fonte: post?.fonte, resumo: linhas.join('\\n'), houveFalha, html } }];\n"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -459,7 +459,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const cfg = $('Configuração — Edite Aqui').first().json;\n// Texto no formato do LinkedIn (\"little text\"): caracteres reservados precisam de barra.\n// O \"#\" fica sem escape para as hashtags funcionarem.\nconst post = $('Monta Posts').first().json;\nconst escapa = s => String(s).replace(/([\\\\|{}@\\[\\]()<>*_~])/g, '\\\\$1');\nlet author = String(cfg.LINKEDIN_AUTHOR_URN ?? '').trim();\nif (!author) {\n  try { const me = $('LinkedIn — Descobrir Meu ID').first().json; if (me && me.sub) author = 'urn:li:person:' + me.sub; } catch (e) {}\n}\nif (!/^urn:li:(person|organization):[A-Za-z0-9_-]+$/.test(author))\n  throw new Error('Não foi possível definir o autor do LinkedIn. Preencha LINKEDIN_AUTHOR_URN no nó Configuração — Edite Aqui, por exemplo urn:li:person:AbC123 ou urn:li:organization:12345678');\nreturn [{ json: {\n  author,\n  version: String(cfg.LINKEDIN_API_VERSION ?? '202510'),\n  body: {\n    author,\n    commentary: escapa(post.linkedin).slice(0, 3000),\n    visibility: 'PUBLIC',\n    distribution: { feedDistribution: 'MAIN_FEED', targetEntities: [], thirdPartyDistributionChannels: [] },\n    lifecycleState: 'PUBLISHED',\n    isReshareDisabledByAuthor: false\n  }\n} }];\n"
+        "jsCode": "const cfg = $('Configuração — Edite Aqui').first().json;\n// Texto no formato do LinkedIn (\"little text\"): caracteres reservados precisam de barra.\n// O \"#\" fica sem escape para as hashtags funcionarem.\nconst post = $('Monta Posts').first().json;\nconst escapa = s => String(s).replace(/([\\\\|{}@\\[\\]()<>*_~])/g, '\\\\$1');\nlet author = String(cfg.LINKEDIN_AUTHOR_URN ?? '').trim();\nif (!author) {\n  try { const me = $('LinkedIn — Descobrir Meu ID').first().json; if (me && me.sub) author = 'urn:li:person:' + me.sub; } catch (e) {}\n}\nif (!/^urn:li:(person|organization):[A-Za-z0-9_-]+$/.test(author)) {\n  // Não derruba o fluxo: o LinkedIn é pulado e o motivo aparece aqui e no e-mail de resultado.\n  return [{ json: { pular: true, motivo: 'Autor do LinkedIn indefinido. Confira a credencial (escopos openid profile w_member_social) ou preencha LINKEDIN_AUTHOR_URN no nó Configuração — Edite Aqui.' } }];\n}\nreturn [{ json: {\n  author,\n  version: String(cfg.LINKEDIN_API_VERSION ?? '202510'),\n  body: {\n    author,\n    commentary: escapa(post.linkedin).slice(0, 3000),\n    visibility: 'PUBLIC',\n    distribution: { feedDistribution: 'MAIN_FEED', targetEntities: [], thirdPartyDistributionChannels: [] },\n    lifecycleState: 'PUBLISHED',\n    isReshareDisabledByAuthor: false\n  }\n} }];\n"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -521,6 +521,40 @@
           "name": "LinkedIn (OAuth2 genérica)"
         }
       }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "c9",
+              "leftValue": "={{ !!$json.pular }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1180,
+        370
+      ],
+      "id": "n22",
+      "name": "IF — Pular LinkedIn?"
     }
   ],
   "connections": {
@@ -703,7 +737,7 @@
       "main": [
         [
           {
-            "node": "LinkedIn — Publicar",
+            "node": "IF — Pular LinkedIn?",
             "type": "main",
             "index": 0
           }
@@ -748,6 +782,24 @@
         [
           {
             "node": "Escolhe Tema (rodízio)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF — Pular LinkedIn?": {
+      "main": [
+        [
+          {
+            "node": "Facebook — Publicar na Página",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "LinkedIn — Publicar",
             "type": "main",
             "index": 0
           }
