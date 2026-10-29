@@ -34,7 +34,7 @@
     },
     {
       "parameters": {
-        "jsCode": "\nconst TEMAS = [\n  { id: 'ramal-remoto', titulo: 'Ramal em qualquer lugar', fatos: 'PABX IP na nuvem (ConnectX). O ramal funciona no computador ou no celular, com o mesmo número, de casa, da filial ou da rua. Sem equipamento para manter no escritório.' },\n  { id: 'fixo-movel', titulo: 'Ligações por valor fixo', fatos: 'Ligações ilimitadas para fixos e celulares por valor fixo, ligações internas sem custo entre a equipe e número fixo de outras cidades.' },\n  { id: 'slack-zoho', titulo: 'Slack + Zoho Desk', fatos: 'Integração que transforma conversas do Slack em tickets e comentários no Zoho Desk. Conversas normais ficam em um ticket por canal por dia; uma thread abre um ticket próprio com o título da mensagem original. Imagens viram anexos.' },\n  { id: 'monitoramento', titulo: 'Monitoramento 24/7', fatos: 'Monitoramento contínuo de conectividade, serviços e servidores, para agir antes de o cliente perceber o problema.' },\n  { id: 'consultoria', titulo: 'Consultoria de TI', fatos: 'Visão externa, identificação de problemas ocultos e tempo devolvido para a equipe.' },\n  { id: 'integracoes-crm', titulo: 'CRM e mensagens corporativas', fatos: 'Integrações entre CRMs e aplicativos de mensagens corporativas, sem copiar e colar entre sistemas.' },\n  { id: 'portaria', titulo: 'Portaria remota', fatos: 'Atendimento e liberação de acesso à distância integrados ao PABX IP.' },\n  { id: 'sistemas', titulo: 'Sistemas e aplicativos sob medida', fatos: 'Desenvolvimento de sites, sistemas web, aplicativos e integrações construídos junto com a operação do cliente.' }\n];\n\n// Rodízio simples guardado no próprio workflow (funciona nas execuções automáticas).\nconst sd = $getWorkflowStaticData('global');\nconst i = Number.isInteger(sd.temaIdx) ? sd.temaIdx : 0;\nconst tema = TEMAS[i % TEMAS.length];\nsd.temaIdx = (i + 1) % TEMAS.length;\nconst site = String(($vars['SITE_URL'] ?? 'https://conectxip.com')).replace(/\\/+$/, '');\nreturn [{ json: { tema, site, imagem: String($vars['SOCIAL_IMAGE_URL'] ?? '').trim() } }];\n"
+        "jsCode": "const cfg = $('Configuração — Edite Aqui').first().json;\nconst TEMAS = [\n  { id: 'ramal-remoto', titulo: 'Ramal em qualquer lugar', fatos: 'PABX IP na nuvem (ConnectX). O ramal funciona no computador ou no celular, com o mesmo número, de casa, da filial ou da rua. Sem equipamento para manter no escritório.' },\n  { id: 'fixo-movel', titulo: 'Ligações por valor fixo', fatos: 'Ligações ilimitadas para fixos e celulares por valor fixo, ligações internas sem custo entre a equipe e número fixo de outras cidades.' },\n  { id: 'slack-zoho', titulo: 'Slack + Zoho Desk', fatos: 'Integração que transforma conversas do Slack em tickets e comentários no Zoho Desk. Conversas normais ficam em um ticket por canal por dia; uma thread abre um ticket próprio com o título da mensagem original. Imagens viram anexos.' },\n  { id: 'monitoramento', titulo: 'Monitoramento 24/7', fatos: 'Monitoramento contínuo de conectividade, serviços e servidores, para agir antes de o cliente perceber o problema.' },\n  { id: 'consultoria', titulo: 'Consultoria de TI', fatos: 'Visão externa, identificação de problemas ocultos e tempo devolvido para a equipe.' },\n  { id: 'integracoes-crm', titulo: 'CRM e mensagens corporativas', fatos: 'Integrações entre CRMs e aplicativos de mensagens corporativas, sem copiar e colar entre sistemas.' },\n  { id: 'portaria', titulo: 'Portaria remota', fatos: 'Atendimento e liberação de acesso à distância integrados ao PABX IP.' },\n  { id: 'sistemas', titulo: 'Sistemas e aplicativos sob medida', fatos: 'Desenvolvimento de sites, sistemas web, aplicativos e integrações construídos junto com a operação do cliente.' }\n];\n\n// Rodízio simples guardado no próprio workflow (funciona nas execuções automáticas).\nconst sd = $getWorkflowStaticData('global');\nconst i = Number.isInteger(sd.temaIdx) ? sd.temaIdx : 0;\nconst tema = TEMAS[i % TEMAS.length];\nsd.temaIdx = (i + 1) % TEMAS.length;\nconst site = String((cfg.SITE_URL ?? 'https://conectxip.com')).replace(/\\/+$/, '');\nreturn [{ json: { tema, site, imagem: String(cfg.SOCIAL_IMAGE_URL ?? '').trim() } }];\n"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -66,7 +66,7 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ { model: $vars.SOCIAL_AI_MODEL || 'claude-sonnet-5-5', max_tokens: 1500, messages: [{ role: 'user', content: \"Você escreve posts de redes sociais em português do Brasil para a ConectPbx, empresa de telefonia IP e TI de São Paulo (PABX IP ConnectX, monitoramento, consultoria, integrações e desenvolvimento).\\nTema do post: {{TITULO}}\\nFatos permitidos (use apenas isto): {{FATOS}}\\n\\nRegras:\\n- Não invente números, preços, prazos, clientes, prêmios ou depoimentos.\\n- Tom profissional e direto, sem exageros, sem emojis em excesso (no máximo 2).\\n- Cada versão deve terminar convidando a conhecer o site, sem escrever o endereço (ele será adicionado depois).\\n- LinkedIn: 500 a 900 caracteres, com abertura que chame atenção.\\n- Facebook: 250 a 450 caracteres.\\n- Instagram: 300 a 600 caracteres.\\n- hashtags: de 4 a 6, sem espaços, sem \\\"#\\\" no início de cada item.\\n\\nResponda somente com JSON válido neste formato, sem texto fora dele:\\n{\\\"linkedin\\\":\\\"...\\\",\\\"facebook\\\":\\\"...\\\",\\\"instagram\\\":\\\"...\\\",\\\"hashtags\\\":[\\\"...\\\",\\\"...\\\"]}\".replace('{{TITULO}}', $json.tema.titulo).replace('{{FATOS}}', $json.tema.fatos) }] } }}",
+        "jsonBody": "={{ { model: $('Configuração — Edite Aqui').first().json.SOCIAL_AI_MODEL || 'claude-sonnet-5-5', max_tokens: 1500, messages: [{ role: 'user', content: \"Você escreve posts de redes sociais em português do Brasil para a ConectPbx, empresa de telefonia IP e TI de São Paulo (PABX IP ConnectX, monitoramento, consultoria, integrações e desenvolvimento).\\nTema do post: {{TITULO}}\\nFatos permitidos (use apenas isto): {{FATOS}}\\n\\nRegras:\\n- Não invente números, preços, prazos, clientes, prêmios ou depoimentos.\\n- Tom profissional e direto, sem exageros, sem emojis em excesso (no máximo 2).\\n- Cada versão deve terminar convidando a conhecer o site, sem escrever o endereço (ele será adicionado depois).\\n- LinkedIn: 500 a 900 caracteres, com abertura que chame atenção.\\n- Facebook: 250 a 450 caracteres.\\n- Instagram: 300 a 600 caracteres.\\n- hashtags: de 4 a 6, sem espaços, sem \\\"#\\\" no início de cada item.\\n\\nResponda somente com JSON válido neste formato, sem texto fora dele:\\n{\\\"linkedin\\\":\\\"...\\\",\\\"facebook\\\":\\\"...\\\",\\\"instagram\\\":\\\"...\\\",\\\"hashtags\\\":[\\\"...\\\",\\\"...\\\"]}\".replace('{{TITULO}}', $json.tema.titulo).replace('{{FATOS}}', $json.tema.fatos) }] } }}",
         "options": {
           "timeout": 60000
         }
@@ -89,7 +89,7 @@
     },
     {
       "parameters": {
-        "jsCode": "\nconst base = $('Escolhe Tema (rodízio)').first().json;\nconst { tema, site, imagem } = base;\nconst resp = $input.first().json;\n\n// 1) Tenta ler o JSON gerado pela IA\nlet ia = null;\ntry {\n  const texto = (resp.content || []).map(c => c.text || '').join('').trim()\n    .replace(/^```(?:json)?/i, '').replace(/```$/, '').trim();\n  const j = JSON.parse(texto);\n  if (j && j.linkedin && j.facebook && j.instagram) ia = j;\n} catch (e) { ia = null; }\n\n// 2) Plano B sem IA: texto fixo e seguro, só com os fatos do tema\nconst cta = 'Conheça a ConectPbx.';\nconst plano = {\n  linkedin: `${tema.titulo}\\n\\n${tema.fatos}\\n\\n${cta}`,\n  facebook: `${tema.titulo}: ${tema.fatos} ${cta}`,\n  instagram: `${tema.titulo}\\n\\n${tema.fatos}\\n\\n${cta}`,\n  hashtags: ['telefoniaIP', 'PABX', 'TI', 'ConectPbx']\n};\nconst src = ia || plano;\nconst fonte = ia ? 'ia' : 'plano_b';\n\nconst tags = (Array.isArray(src.hashtags) ? src.hashtags : plano.hashtags)\n  .map(t => String(t).replace(/[^\\p{L}\\p{N}_]/gu, '')).filter(Boolean).slice(0, 6)\n  .map(t => '#' + t).join(' ');\n\nconst url = rede => `${site}/?utm_source=${rede}&utm_medium=social&utm_campaign=${encodeURIComponent(tema.id)}`;\nconst corta = (s, n) => { s = String(s); return s.length <= n ? s : s.slice(0, n - 1).trimEnd() + '…'; };\n\nconst linkedin  = corta(`${src.linkedin}\\n\\n${url('linkedin')}\\n\\n${tags}`, 2900);\nconst facebook  = corta(`${src.facebook}\\n\\n${tags}`, 1800);\nconst instagram = corta(`${src.instagram}\\n\\nLink na bio.\\n\\n${tags}`, 2100);\n\nreturn [{ json: {\n  tema, fonte, imagem, tags,\n  linkedin, facebook, instagram,\n  facebookLink: url('facebook'),\n  temImagem: /^https:\\/\\//i.test(imagem),\n  aprovacao: String($vars['SOCIAL_APPROVAL'] ?? 'true').toLowerCase() === 'true'\n} }];\n"
+        "jsCode": "const cfg = $('Configuração — Edite Aqui').first().json;\nconst base = $('Escolhe Tema (rodízio)').first().json;\nconst { tema, site, imagem } = base;\nconst resp = $input.first().json;\n\n// 1) Tenta ler o JSON gerado pela IA\nlet ia = null;\ntry {\n  const texto = (resp.content || []).map(c => c.text || '').join('').trim()\n    .replace(/^```(?:json)?/i, '').replace(/```$/, '').trim();\n  const j = JSON.parse(texto);\n  if (j && j.linkedin && j.facebook && j.instagram) ia = j;\n} catch (e) { ia = null; }\n\n// 2) Plano B sem IA: texto fixo e seguro, só com os fatos do tema\nconst cta = 'Conheça a ConectPbx.';\nconst plano = {\n  linkedin: `${tema.titulo}\\n\\n${tema.fatos}\\n\\n${cta}`,\n  facebook: `${tema.titulo}: ${tema.fatos} ${cta}`,\n  instagram: `${tema.titulo}\\n\\n${tema.fatos}\\n\\n${cta}`,\n  hashtags: ['telefoniaIP', 'PABX', 'TI', 'ConectPbx']\n};\nconst src = ia || plano;\nconst fonte = ia ? 'ia' : 'plano_b';\n\nconst tags = (Array.isArray(src.hashtags) ? src.hashtags : plano.hashtags)\n  .map(t => String(t).replace(/[^\\p{L}\\p{N}_]/gu, '')).filter(Boolean).slice(0, 6)\n  .map(t => '#' + t).join(' ');\n\nconst url = rede => `${site}/?utm_source=${rede}&utm_medium=social&utm_campaign=${encodeURIComponent(tema.id)}`;\nconst corta = (s, n) => { s = String(s); return s.length <= n ? s : s.slice(0, n - 1).trimEnd() + '…'; };\n\nconst linkedin  = corta(`${src.linkedin}\\n\\n${url('linkedin')}\\n\\n${tags}`, 2900);\nconst facebook  = corta(`${src.facebook}\\n\\n${tags}`, 1800);\nconst instagram = corta(`${src.instagram}\\n\\nLink na bio.\\n\\n${tags}`, 2100);\n\nreturn [{ json: {\n  tema, fonte, imagem, tags,\n  linkedin, facebook, instagram,\n  facebookLink: url('facebook'),\n  temImagem: /^https:\\/\\//i.test(imagem),\n  aprovacao: String(cfg.SOCIAL_APPROVAL ?? 'true').toLowerCase() === 'true'\n} }];\n"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -138,7 +138,7 @@
       "parameters": {
         "resource": "message",
         "operation": "send",
-        "sendTo": "={{ $vars.SOCIAL_APPROVER_EMAIL }}",
+        "sendTo": "={{ $('Configuração — Edite Aqui').first().json.SOCIAL_APPROVER_EMAIL }}",
         "subject": "={{ $json.assunto }}",
         "emailType": "html",
         "message": "={{ $json.html }}",
@@ -278,7 +278,7 @@
     {
       "parameters": {
         "graphApiVersion": "v21.0",
-        "node": "={{ $vars.FACEBOOK_PAGE_ID }}",
+        "node": "={{ $('Configuração — Edite Aqui').first().json.FACEBOOK_PAGE_ID }}",
         "edge": "feed",
         "httpRequestMethod": "POST",
         "options": {
@@ -349,7 +349,7 @@
     {
       "parameters": {
         "graphApiVersion": "v21.0",
-        "node": "={{ $vars.INSTAGRAM_USER_ID }}",
+        "node": "={{ $('Configuração — Edite Aqui').first().json.INSTAGRAM_USER_ID }}",
         "edge": "media",
         "httpRequestMethod": "POST",
         "options": {
@@ -386,7 +386,7 @@
     {
       "parameters": {
         "graphApiVersion": "v21.0",
-        "node": "={{ $vars.INSTAGRAM_USER_ID }}",
+        "node": "={{ $('Configuração — Edite Aqui').first().json.INSTAGRAM_USER_ID }}",
         "edge": "media_publish",
         "httpRequestMethod": "POST",
         "options": {
@@ -433,7 +433,7 @@
       "parameters": {
         "resource": "message",
         "operation": "send",
-        "sendTo": "={{ $vars.SOCIAL_APPROVER_EMAIL }}",
+        "sendTo": "={{ $('Configuração — Edite Aqui').first().json.SOCIAL_APPROVER_EMAIL }}",
         "subject": "={{ ($json.houveFalha ? 'ATENÇÃO: ' : 'Publicado: ') + $json.tema }}",
         "emailType": "html",
         "message": "={{ $json.html }}",
@@ -459,7 +459,7 @@
     },
     {
       "parameters": {
-        "jsCode": "\n// Texto no formato do LinkedIn (\"little text\"): caracteres reservados precisam de barra.\n// O \"#\" fica sem escape para as hashtags funcionarem.\nconst post = $('Monta Posts').first().json;\nconst escapa = s => String(s).replace(/([\\\\|{}@\\[\\]()<>*_~])/g, '\\\\$1');\nconst author = String($vars['LINKEDIN_AUTHOR_URN'] ?? '').trim();\nif (!/^urn:li:(person|organization):[A-Za-z0-9_-]+$/.test(author))\n  throw new Error('Defina a variável LINKEDIN_AUTHOR_URN, por exemplo urn:li:person:AbC123 ou urn:li:organization:12345678');\nreturn [{ json: {\n  author,\n  version: String($vars['LINKEDIN_API_VERSION'] ?? '202510'),\n  body: {\n    author,\n    commentary: escapa(post.linkedin).slice(0, 3000),\n    visibility: 'PUBLIC',\n    distribution: { feedDistribution: 'MAIN_FEED', targetEntities: [], thirdPartyDistributionChannels: [] },\n    lifecycleState: 'PUBLISHED',\n    isReshareDisabledByAuthor: false\n  }\n} }];\n"
+        "jsCode": "const cfg = $('Configuração — Edite Aqui').first().json;\n// Texto no formato do LinkedIn (\"little text\"): caracteres reservados precisam de barra.\n// O \"#\" fica sem escape para as hashtags funcionarem.\nconst post = $('Monta Posts').first().json;\nconst escapa = s => String(s).replace(/([\\\\|{}@\\[\\]()<>*_~])/g, '\\\\$1');\nlet author = String(cfg.LINKEDIN_AUTHOR_URN ?? '').trim();\nif (!author) {\n  try { const me = $('LinkedIn — Descobrir Meu ID').first().json; if (me && me.sub) author = 'urn:li:person:' + me.sub; } catch (e) {}\n}\nif (!/^urn:li:(person|organization):[A-Za-z0-9_-]+$/.test(author))\n  throw new Error('Não foi possível definir o autor do LinkedIn. Preencha LINKEDIN_AUTHOR_URN no nó Configuração — Edite Aqui, por exemplo urn:li:person:AbC123 ou urn:li:organization:12345678');\nreturn [{ json: {\n  author,\n  version: String(cfg.LINKEDIN_API_VERSION ?? '202510'),\n  body: {\n    author,\n    commentary: escapa(post.linkedin).slice(0, 3000),\n    visibility: 'PUBLIC',\n    distribution: { feedDistribution: 'MAIN_FEED', targetEntities: [], thirdPartyDistributionChannels: [] },\n    lifecycleState: 'PUBLISHED',\n    isReshareDisabledByAuthor: false\n  }\n} }];\n"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -482,6 +482,45 @@
       ],
       "id": "n19",
       "name": "Prepara — E-mail de Aprovação"
+    },
+    {
+      "parameters": {
+        "jsCode": "// EDITE AQUI: todas as configurações do workflow ficam neste nó (não precisa de \"Variables\" do n8n).\nconst CONFIG = {\n  // Site e conteúdo\n  SITE_URL: 'https://conectxip.com',\n  SOCIAL_IMAGE_URL: '',            // imagem pública https para o Instagram (vazio = pula o Instagram)\n  SOCIAL_AI_MODEL: 'claude-sonnet-5-5',\n\n  // Aprovação por e-mail (Gmail)\n  SOCIAL_APPROVAL: 'true',         // 'true' pede aprovação; 'false' publica direto\n  SOCIAL_APPROVER_EMAIL: 'seu-email@gmail.com',\n\n  // LinkedIn\n  LINKEDIN_AUTHOR_URN: '',         // vazio = usa o seu perfil automaticamente; ou urn:li:organization:NNNN\n  LINKEDIN_API_VERSION: '202510',\n\n  // Facebook e Instagram (IDs do Graph API)\n  FACEBOOK_PAGE_ID: '',\n  INSTAGRAM_USER_ID: ''\n};\nreturn [{ json: CONFIG }];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        130,
+        80
+      ],
+      "id": "n20",
+      "name": "Configuração — Edite Aqui"
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "https://api.linkedin.com/v2/userinfo",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "oAuth2Api",
+        "options": {
+          "timeout": 20000
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1100,
+        370
+      ],
+      "id": "n21",
+      "name": "LinkedIn — Descobrir Meu ID",
+      "onError": "continueRegularOutput",
+      "credentials": {
+        "oAuth2Api": {
+          "id": "",
+          "name": "LinkedIn (OAuth2 genérica)"
+        }
+      }
     }
   ],
   "connections": {
@@ -489,7 +528,7 @@
       "main": [
         [
           {
-            "node": "Escolhe Tema (rodízio)",
+            "node": "Configuração — Edite Aqui",
             "type": "main",
             "index": 0
           }
@@ -500,7 +539,7 @@
       "main": [
         [
           {
-            "node": "Escolhe Tema (rodízio)",
+            "node": "Configuração — Edite Aqui",
             "type": "main",
             "index": 0
           }
@@ -551,7 +590,7 @@
         ],
         [
           {
-            "node": "LinkedIn — Preparar Texto",
+            "node": "LinkedIn — Descobrir Meu ID",
             "type": "main",
             "index": 0
           }
@@ -573,7 +612,7 @@
       "main": [
         [
           {
-            "node": "LinkedIn — Preparar Texto",
+            "node": "LinkedIn — Descobrir Meu ID",
             "type": "main",
             "index": 0
           }
@@ -687,6 +726,28 @@
         [
           {
             "node": "Gmail — Pedir Aprovação",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "LinkedIn — Descobrir Meu ID": {
+      "main": [
+        [
+          {
+            "node": "LinkedIn — Preparar Texto",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Configuração — Edite Aqui": {
+      "main": [
+        [
+          {
+            "node": "Escolhe Tema (rodízio)",
             "type": "main",
             "index": 0
           }

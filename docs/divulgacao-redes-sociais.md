@@ -13,19 +13,23 @@ Importe em *n8n → Workflows → Import from file*. Depois selecione as credenc
 6. **Publicação:** LinkedIn (página da empresa), Facebook (Página) e Instagram (conta profissional, exige imagem).
 7. **Resultado:** envia um e-mail dizendo o que foi publicado e o que falhou.
 
-## Variáveis do n8n (Settings → Variables)
+## Configuração (nó "Configuração — Edite Aqui")
 
-| Variável | Para quê |
+Todas as configurações ficam em um único nó de código no início do fluxo, sem depender do recurso *Variables* do n8n (que não existe em algumas edições). Abra o nó e preencha:
+
+| Campo | Para quê |
 |---|---|
-| `SITE_URL` | endereço do site (padrão `https://conectxip.com`) |
-| `SOCIAL_APPROVAL` | `true` pede aprovação por e-mail (padrão); `false` publica direto |
+| `SITE_URL` | endereço do site |
+| `SOCIAL_APPROVAL` | `'true'` pede aprovação por e-mail; `'false'` publica direto |
 | `SOCIAL_APPROVER_EMAIL` | e-mail de quem aprova e recebe os avisos (vários, separados por vírgula) |
-| `SOCIAL_IMAGE_URL` | imagem pública (https) para o Instagram. Sem ela, o Instagram é ignorado |
-| `SOCIAL_AI_MODEL` | opcional, modelo do Claude (padrão `claude-sonnet-5-5`) |
-| `LINKEDIN_AUTHOR_URN` | quem publica: `urn:li:person:XXXX` (perfil) ou `urn:li:organization:NNNN` (página) |
-| `LINKEDIN_API_VERSION` | opcional, versão da API do LinkedIn no formato `AAAAMM` (padrão `202510`) |
+| `SOCIAL_IMAGE_URL` | imagem pública (https) para o Instagram. Vazio = o Instagram é ignorado |
+| `SOCIAL_AI_MODEL` | modelo do Claude |
+| `LINKEDIN_AUTHOR_URN` | vazio = publica no seu perfil automaticamente; ou `urn:li:organization:NNNN` para a página |
+| `LINKEDIN_API_VERSION` | versão da API do LinkedIn (`AAAAMM`) |
 | `FACEBOOK_PAGE_ID` | ID da Página do Facebook |
-| `INSTAGRAM_USER_ID` | ID da conta profissional do Instagram (Graph API) |
+| `INSTAGRAM_USER_ID` | ID da conta profissional do Instagram |
+
+Não coloque tokens nem senhas nesse nó. Eles ficam nas credenciais do n8n.
 
 ## Credenciais
 
@@ -37,7 +41,7 @@ Importe em *n8n → Workflows → Import from file*. Depois selecione as credenc
   - Scope: `openid profile w_member_social` (perfil) ou `w_organization_social` (página, só com *Community Management API* aprovado)
   - Authentication: *Body*
   - Copie a *OAuth Redirect URL* para *Authorized redirect URLs* do app no LinkedIn.
-  - **Perfil pessoal:** no app, ative os produtos *Share on LinkedIn* e *Sign In with LinkedIn using OpenID Connect*. Para descobrir o seu ID, faça `GET https://api.linkedin.com/v2/userinfo` com a credencial; o campo `sub` é o ID, e a variável fica `urn:li:person:<sub>`.
+  - **Perfil pessoal:** no app, ative os produtos *Share on LinkedIn* e *Sign In with LinkedIn using OpenID Connect*. O workflow descobre o seu ID sozinho (`GET /v2/userinfo`), então `LINKEDIN_AUTHOR_URN` pode ficar vazio.
   - **Página da empresa:** exige o produto *Community Management API* aprovado e que você seja administrador da página. O erro `unauthorized_scope_error` indica que isso ainda não foi liberado.
 - **Facebook e Instagram:** crie um app na Meta for Developers e gere um token **de Página** de longa duração com `pages_manage_posts`, `pages_read_engagement`, `instagram_basic` e `instagram_content_publish`. A conta do Instagram precisa ser profissional e estar ligada à Página.
 
