@@ -48,7 +48,7 @@ deploy/docker-compose.yml  referência para o servidor
 
 ## Divulgação nas redes sociais
 
-Workflow n8n que gera posts com IA, pede aprovação no Slack e publica no LinkedIn, Facebook e Instagram. Arquivo em `automacoes/` e guia em [docs/divulgacao-redes-sociais.md](docs/divulgacao-redes-sociais.md).
+Workflow n8n que gera posts com IA, pede aprovação por e-mail (Gmail) e publica no LinkedIn, Facebook e Instagram. Arquivo em `automacoes/` e guia em [docs/divulgacao-redes-sociais.md](docs/divulgacao-redes-sociais.md).
 
 ## Demonstrações
 

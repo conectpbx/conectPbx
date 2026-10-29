@@ -9,17 +9,17 @@ Importe em *n8n → Workflows → Import from file*. Depois selecione as credenc
 2. **Tema:** escolhe em rodízio entre 8 temas baseados no que o site já afirma (ramal remoto, ligações por valor fixo, Slack + Zoho Desk, monitoramento, consultoria, CRM e mensagens, portaria remota, sistemas sob medida).
 3. **Texto:** o Claude escreve uma versão para LinkedIn, Facebook e Instagram, usando só os fatos do tema (sem inventar números, preços ou clientes). Se a IA falhar, entra um texto fixo e seguro.
 4. **Link:** acrescenta o site com `utm_source` de cada rede, para medir o retorno no Analytics.
-5. **Aprovação (padrão):** envia o rascunho ao Slack com um link para aprovar. Só publica depois de clicar. Em 48 h sem aprovação, o post é descartado.
+5. **Aprovação (padrão):** envia o rascunho por **Gmail** com o botão "Aprovar e publicar". Só publica depois de clicar. Em 48 h sem aprovação, o post é descartado.
 6. **Publicação:** LinkedIn (página da empresa), Facebook (Página) e Instagram (conta profissional, exige imagem).
-7. **Resultado:** avisa no Slack o que foi publicado e o que falhou.
+7. **Resultado:** envia um e-mail dizendo o que foi publicado e o que falhou.
 
 ## Variáveis do n8n (Settings → Variables)
 
 | Variável | Para quê |
 |---|---|
 | `SITE_URL` | endereço do site (padrão `https://conectxip.com`) |
-| `SOCIAL_APPROVAL` | `true` pede aprovação no Slack (padrão); `false` publica direto |
-| `SOCIAL_SLACK_CHANNEL` | ID do canal do Slack para aprovação e avisos |
+| `SOCIAL_APPROVAL` | `true` pede aprovação por e-mail (padrão); `false` publica direto |
+| `SOCIAL_APPROVER_EMAIL` | e-mail de quem aprova e recebe os avisos (vários, separados por vírgula) |
 | `SOCIAL_IMAGE_URL` | imagem pública (https) para o Instagram. Sem ela, o Instagram é ignorado |
 | `SOCIAL_AI_MODEL` | opcional, modelo do Claude (padrão `claude-sonnet-5-5`) |
 | `LINKEDIN_AUTHOR_URN` | quem publica: `urn:li:person:XXXX` (perfil) ou `urn:li:organization:NNNN` (página) |
@@ -30,7 +30,7 @@ Importe em *n8n → Workflows → Import from file*. Depois selecione as credenc
 ## Credenciais
 
 - **Anthropic:** credencial *Header Auth* com nome `x-api-key` e a chave da API como valor.
-- **Slack:** a mesma do workflow de tickets. O app precisa do escopo `chat:write` e estar no canal.
+- **Gmail:** credencial *Gmail OAuth2* no n8n (Google Cloud: ative a *Gmail API*, crie o cliente OAuth e use a URL de retorno da credencial). O envio usa a conta que fez o login.
 - **LinkedIn (HTTP Request + OAuth2 genérica):** o nó usa a API `POST /rest/posts`. Crie uma credencial *OAuth2 API* no n8n com:
   - Authorization URL: `https://www.linkedin.com/oauth/v2/authorization`
   - Access Token URL: `https://www.linkedin.com/oauth/v2/accessToken`
@@ -43,7 +43,7 @@ Importe em *n8n → Workflows → Import from file*. Depois selecione as credenc
 
 ## Antes de ligar
 
-1. Rode o gatilho manual com `SOCIAL_APPROVAL=true` e confira o rascunho no Slack.
+1. Rode o gatilho manual com `SOCIAL_APPROVAL=true` e confira o rascunho no e-mail.
 2. Aprove e verifique se os três posts saíram. Corrija credenciais ou IDs se algum falhar.
 3. Só então ative o workflow.
 
@@ -51,6 +51,6 @@ Importe em *n8n → Workflows → Import from file*. Depois selecione as credenc
 
 - Os temas e fatos ficam no nó **Escolhe Tema**. Edite ali para incluir novidades, promoções ou cases autorizados.
 - O Instagram só publica com imagem. Sem `SOCIAL_IMAGE_URL`, o fluxo pula essa rede.
-- Aprovação por link: quem tiver o link no Slack consegue aprovar. Use um canal restrito.
+- Aprovação por link: quem tiver o link do e-mail consegue aprovar, então não o encaminhe. Alguns antivírus de e-mail abrem os links automaticamente e podem aprovar sem querer. Se isso acontecer, mande a aprovação para um e-mail sem varredura de links ou me peça uma página de confirmação.
 - Nunca coloque tokens ou chaves no JSON nem no repositório. Eles ficam nas credenciais do n8n.
 - O workflow não foi executado em um n8n real. A lógica de escolha do tema e a montagem dos textos foram testadas à parte, mas as chamadas às redes dependem de suas credenciais.

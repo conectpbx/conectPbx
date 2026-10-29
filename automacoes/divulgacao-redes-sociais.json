@@ -136,28 +136,29 @@
     },
     {
       "parameters": {
-        "select": "channel",
-        "channelId": {
-          "__rl": true,
-          "value": "={{ $vars.SOCIAL_SLACK_CHANNEL }}",
-          "mode": "id"
-        },
-        "text": "={{ '*Post para aprovar* (' + $json.tema.titulo + ' · ' + $json.fonte + ')\\n\\n*LinkedIn*\\n' + $json.linkedin + '\\n\\n*Facebook*\\n' + $json.facebook + '\\n\\n*Instagram*\\n' + $json.instagram + '\\n\\n*Aprovar e publicar:* ' + $execution.resumeUrl }}",
-        "otherOptions": {}
+        "resource": "message",
+        "operation": "send",
+        "sendTo": "={{ $vars.SOCIAL_APPROVER_EMAIL }}",
+        "subject": "={{ $json.assunto }}",
+        "emailType": "html",
+        "message": "={{ $json.html }}",
+        "options": {
+          "appendAttribution": false
+        }
       },
-      "type": "n8n-nodes-base.slack",
-      "typeVersion": 2.3,
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
       "position": [
-        1300,
+        1410,
         -60
       ],
       "id": "n07",
-      "name": "Slack — Pedir Aprovação",
+      "name": "Gmail — Pedir Aprovação",
       "onError": "continueRegularOutput",
       "credentials": {
-        "slackApi": {
+        "gmailOAuth2": {
           "id": "",
-          "name": "Slack"
+          "name": "Gmail"
         }
       }
     },
@@ -417,7 +418,7 @@
     },
     {
       "parameters": {
-        "jsCode": "\nconst get = nome => { try { return $(nome).first().json; } catch (e) { return null; } };\nconst ok = (j, campo) => !!(j && !j.error && !j.errorMessage && (campo ? j[campo] : true));\nconst li = get('LinkedIn — Publicar');\nconst fb = get('Facebook — Publicar na Página');\nconst igc = get('Instagram — Criar Mídia');\nconst igp = get('Instagram — Publicar');\nconst post = get('Monta Posts');\n\nconst linhas = [\n  `LinkedIn: ${ok(li) ? 'publicado' : 'FALHOU'}`,\n  `Facebook: ${ok(fb, 'id') ? 'publicado' : 'FALHOU'}`,\n  `Instagram: ${post && !post.temImagem ? 'ignorado (sem imagem em SOCIAL_IMAGE_URL)' : (ok(igc, 'id') && ok(igp, 'id') ? 'publicado' : 'FALHOU')}`\n];\nreturn [{ json: { tema: post?.tema?.titulo, fonte: post?.fonte, resumo: linhas.join('\\n'), houveFalha: linhas.some(l => l.includes('FALHOU')) } }];\n"
+        "jsCode": "\nconst get = nome => { try { return $(nome).first().json; } catch (e) { return null; } };\nconst ok = (j, campo) => !!(j && !j.error && !j.errorMessage && (campo ? j[campo] : true));\nconst li = get('LinkedIn — Publicar');\nconst fb = get('Facebook — Publicar na Página');\nconst igc = get('Instagram — Criar Mídia');\nconst igp = get('Instagram — Publicar');\nconst post = get('Monta Posts');\n\nconst linhas = [\n  `LinkedIn: ${ok(li) ? 'publicado' : 'FALHOU'}`,\n  `Facebook: ${ok(fb, 'id') ? 'publicado' : 'FALHOU'}`,\n  `Instagram: ${post && !post.temImagem ? 'ignorado (sem imagem em SOCIAL_IMAGE_URL)' : (ok(igc, 'id') && ok(igp, 'id') ? 'publicado' : 'FALHOU')}`\n];\nconst houveFalha = linhas.some(l => l.includes('FALHOU'));\nconst html = `<div style=\"font-family:Arial,sans-serif;color:#0c1729\"><p><b>${houveFalha ? 'Alguma rede falhou' : 'Divulgação concluída'}</b>: ${String(post?.tema?.titulo || '')}</p><p style=\"white-space:pre-line\">${linhas.join('\\n')}</p>${houveFalha ? '<p style=\"color:#667;font-size:12px\">Confira a execução no n8n para ver o erro de cada rede.</p>' : ''}</div>`;\nreturn [{ json: { tema: post?.tema?.titulo, fonte: post?.fonte, resumo: linhas.join('\\n'), houveFalha, html } }];\n"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -430,28 +431,29 @@
     },
     {
       "parameters": {
-        "select": "channel",
-        "channelId": {
-          "__rl": true,
-          "value": "={{ $vars.SOCIAL_SLACK_CHANNEL }}",
-          "mode": "id"
-        },
-        "text": "={{ ($json.houveFalha ? ':warning: ' : ':white_check_mark: ') + 'Divulgação: ' + $json.tema + ' (' + $json.fonte + ')\\n' + $json.resumo }}",
-        "otherOptions": {}
+        "resource": "message",
+        "operation": "send",
+        "sendTo": "={{ $vars.SOCIAL_APPROVER_EMAIL }}",
+        "subject": "={{ ($json.houveFalha ? 'ATENÇÃO: ' : 'Publicado: ') + $json.tema }}",
+        "emailType": "html",
+        "message": "={{ $json.html }}",
+        "options": {
+          "appendAttribution": false
+        }
       },
-      "type": "n8n-nodes-base.slack",
-      "typeVersion": 2.3,
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
       "position": [
         2860,
         200
       ],
       "id": "n17",
-      "name": "Slack — Avisar Resultado",
+      "name": "Gmail — Avisar Resultado",
       "onError": "continueRegularOutput",
       "credentials": {
-        "slackApi": {
+        "gmailOAuth2": {
           "id": "",
-          "name": "Slack"
+          "name": "Gmail"
         }
       }
     },
@@ -467,6 +469,19 @@
       ],
       "id": "n18",
       "name": "LinkedIn — Preparar Texto"
+    },
+    {
+      "parameters": {
+        "jsCode": "\nconst post = $('Monta Posts').first().json;\nconst h = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\\n/g,'<br>');\nconst bloco = (titulo, texto) => `<h3 style=\"margin:18px 0 6px;font-size:15px\">${titulo}</h3><div style=\"padding:12px 14px;background:#f4f6fa;border-radius:8px;font-size:14px;line-height:1.5\">${h(texto)}</div>`;\nconst link = $execution.resumeUrl;\nconst html = `<div style=\"font-family:Arial,sans-serif;max-width:640px;color:#0c1729\">\n<p style=\"font-size:15px\">Post para aprovar: <b>${h(post.tema.titulo)}</b> <span style=\"color:#667\">(texto: ${post.fonte === 'ia' ? 'gerado por IA' : 'plano B, sem IA'})</span></p>\n${bloco('LinkedIn', post.linkedin)}${bloco('Facebook', post.facebook)}${bloco('Instagram' + (post.temImagem ? '' : ' (sem imagem, será ignorado)'), post.instagram)}\n<p style=\"margin:26px 0 8px\"><a href=\"${link}\" style=\"background:#e4570f;color:#fff;padding:12px 22px;border-radius:8px;text-decoration:none;font-weight:bold\">Aprovar e publicar</a></p>\n<p style=\"font-size:12px;color:#667\">Para não publicar, ignore este e-mail. O rascunho expira em 48 horas. Não encaminhe este e-mail: quem tiver o link consegue aprovar.</p></div>`;\nreturn [{ json: { assunto: `[Aprovar post] ${post.tema.titulo}`, html } }];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1170,
+        -60
+      ],
+      "id": "n19",
+      "name": "Prepara — E-mail de Aprovação"
     }
   ],
   "connections": {
@@ -529,7 +544,7 @@
       "main": [
         [
           {
-            "node": "Slack — Pedir Aprovação",
+            "node": "Prepara — E-mail de Aprovação",
             "type": "main",
             "index": 0
           }
@@ -537,17 +552,6 @@
         [
           {
             "node": "LinkedIn — Preparar Texto",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Slack — Pedir Aprovação": {
-      "main": [
-        [
-          {
-            "node": "Aguarda Aprovação (até 48h)",
             "type": "main",
             "index": 0
           }
@@ -649,7 +653,7 @@
       "main": [
         [
           {
-            "node": "Slack — Avisar Resultado",
+            "node": "Gmail — Avisar Resultado",
             "type": "main",
             "index": 0
           }
@@ -661,6 +665,28 @@
         [
           {
             "node": "LinkedIn — Publicar",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gmail — Pedir Aprovação": {
+      "main": [
+        [
+          {
+            "node": "Aguarda Aprovação (até 48h)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepara — E-mail de Aprovação": {
+      "main": [
+        [
+          {
+            "node": "Gmail — Pedir Aprovação",
             "type": "main",
             "index": 0
           }
