@@ -25,7 +25,7 @@ Todas as configurações ficam em um único nó de código no início do fluxo, 
 | `SOCIAL_IMAGE_URL` | imagem pública (https) para o Instagram. Vazio = o Instagram é ignorado |
 | `SOCIAL_AI_MODEL` | modelo do Claude |
 | `LINKEDIN_AUTHOR_URN` | vazio = publica no seu perfil automaticamente; ou `urn:li:organization:NNNN` para a página |
-| `LINKEDIN_API_VERSION` | versão da API do LinkedIn (`AAAAMM`) |
+| `LINKEDIN_API_VERSION` | versão da API do LinkedIn (`AAAAMM`). O LinkedIn desativa cada versão após cerca de 1 ano, então atualize a cada 6 meses. Erro "version is not active" = versão antiga demais |
 | `FACEBOOK_PAGE_ID` | ID da Página do Facebook |
 | `INSTAGRAM_USER_ID` | ID da conta profissional do Instagram |
 
