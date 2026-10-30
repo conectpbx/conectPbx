@@ -277,7 +277,7 @@
     },
     {
       "parameters": {
-        "graphApiVersion": "v21.0",
+        "graphApiVersion": "v23.0",
         "node": "={{ $('Configuração — Edite Aqui').first().json.FACEBOOK_PAGE_ID }}",
         "edge": "feed",
         "httpRequestMethod": "POST",
@@ -348,7 +348,7 @@
     },
     {
       "parameters": {
-        "graphApiVersion": "v21.0",
+        "graphApiVersion": "v23.0",
         "node": "={{ $('Configuração — Edite Aqui').first().json.INSTAGRAM_USER_ID }}",
         "edge": "media",
         "httpRequestMethod": "POST",
@@ -385,7 +385,7 @@
     },
     {
       "parameters": {
-        "graphApiVersion": "v21.0",
+        "graphApiVersion": "v23.0",
         "node": "={{ $('Configuração — Edite Aqui').first().json.INSTAGRAM_USER_ID }}",
         "edge": "media_publish",
         "httpRequestMethod": "POST",
