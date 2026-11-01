@@ -66,7 +66,7 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ { model: $('Configuração — Edite Aqui').first().json.SOCIAL_AI_MODEL || 'claude-sonnet-5-5', max_tokens: 1500, messages: [{ role: 'user', content: \"Você escreve posts de redes sociais em português do Brasil para a ConectPbx, empresa de telefonia IP e TI de São Paulo (PABX IP ConnectX, monitoramento, consultoria, integrações e desenvolvimento).\\nTema do post: {{TITULO}}\\nFatos permitidos (use apenas isto): {{FATOS}}\\n\\nRegras:\\n- Não invente números, preços, prazos, clientes, prêmios ou depoimentos.\\n- Tom profissional e direto, sem exageros, sem emojis em excesso (no máximo 2).\\n- Cada versão deve terminar convidando a conhecer o site, sem escrever o endereço (ele será adicionado depois).\\n- LinkedIn: 500 a 900 caracteres, com abertura que chame atenção.\\n- Facebook: 250 a 450 caracteres.\\n- Instagram: 300 a 600 caracteres.\\n- hashtags: de 4 a 6, sem espaços, sem \\\"#\\\" no início de cada item.\\n\\nResponda somente com JSON válido neste formato, sem texto fora dele:\\n{\\\"linkedin\\\":\\\"...\\\",\\\"facebook\\\":\\\"...\\\",\\\"instagram\\\":\\\"...\\\",\\\"hashtags\\\":[\\\"...\\\",\\\"...\\\"]}\".replace('{{TITULO}}', $json.tema.titulo).replace('{{FATOS}}', $json.tema.fatos) }] } }}",
+        "jsonBody": "={{ { model: $('Configuração — Edite Aqui').first().json.SOCIAL_AI_MODEL || 'claude-sonnet-5-5', max_tokens: 1500, messages: [{ role: 'user', content: \"Você escreve posts de redes sociais em português do Brasil para a ConectPbx, empresa de telefonia IP e TI de São Paulo (PABX IP ConnectX, monitoramento, consultoria, integrações e desenvolvimento).\\nTema do post: {{TITULO}}\\nFatos permitidos (use apenas isto): {{FATOS}}\\n\\nRegras:\\n- Não invente números, preços, prazos, clientes, prêmios ou depoimentos.\\n- Tom profissional e direto, sem exageros, sem emojis em excesso (no máximo 2).\\n- Cada versão deve terminar convidando a conhecer o site, sem escrever o endereço (ele será adicionado depois).\\n- LinkedIn: 500 a 900 caracteres, com abertura que chame atenção.\\n- Facebook: 250 a 450 caracteres.\\n- Instagram: 300 a 600 caracteres.\\n- hashtags: de 4 a 6, sem espaços, sem \\\"#\\\" no início de cada item.\\n- imagem: descrição visual em inglês, de 1 a 2 frases, para gerar uma ilustração quadrada moderna do tema. Sem texto, sem letras, sem logotipos, sem rostos de pessoas reais. Paleta azul-marinho escuro com detalhes em laranja.\\n\\nResponda somente com JSON válido neste formato, sem texto fora dele:\\n{\\\"linkedin\\\":\\\"...\\\",\\\"facebook\\\":\\\"...\\\",\\\"instagram\\\":\\\"...\\\",\\\"hashtags\\\":[\\\"...\\\",\\\"...\\\"],\\\"imagem\\\":\\\"...\\\"}\".replace('{{TITULO}}', $json.tema.titulo).replace('{{FATOS}}', $json.tema.fatos) }] } }}",
         "options": {
           "timeout": 60000
         }
@@ -89,7 +89,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const cfg = $('Configuração — Edite Aqui').first().json;\nconst base = $('Escolhe Tema (rodízio)').first().json;\nconst { tema, site, imagem } = base;\nconst resp = $input.first().json;\n\n// 1) Tenta ler o JSON gerado pela IA\nlet ia = null;\ntry {\n  const texto = (resp.content || []).map(c => c.text || '').join('').trim()\n    .replace(/^```(?:json)?/i, '').replace(/```$/, '').trim();\n  const j = JSON.parse(texto);\n  if (j && j.linkedin && j.facebook && j.instagram) ia = j;\n} catch (e) { ia = null; }\n\n// 2) Plano B sem IA: texto fixo e seguro, só com os fatos do tema\nconst cta = 'Conheça a ConectPbx.';\nconst plano = {\n  linkedin: `${tema.titulo}\\n\\n${tema.fatos}\\n\\n${cta}`,\n  facebook: `${tema.titulo}: ${tema.fatos} ${cta}`,\n  instagram: `${tema.titulo}\\n\\n${tema.fatos}\\n\\n${cta}`,\n  hashtags: ['telefoniaIP', 'PABX', 'TI', 'ConectPbx']\n};\nconst src = ia || plano;\nconst fonte = ia ? 'ia' : 'plano_b';\n\nconst tags = (Array.isArray(src.hashtags) ? src.hashtags : plano.hashtags)\n  .map(t => String(t).replace(/[^\\p{L}\\p{N}_]/gu, '')).filter(Boolean).slice(0, 6)\n  .map(t => '#' + t).join(' ');\n\nconst url = rede => `${site}/?utm_source=${rede}&utm_medium=social&utm_campaign=${encodeURIComponent(tema.id)}`;\nconst corta = (s, n) => { s = String(s); return s.length <= n ? s : s.slice(0, n - 1).trimEnd() + '…'; };\n\nconst linkedin  = corta(`${src.linkedin}\\n\\n${url('linkedin')}\\n\\n${tags}`, 2900);\nconst facebook  = corta(`${src.facebook}\\n\\n${tags}`, 1800);\nconst instagram = corta(`${src.instagram}\\n\\nLink na bio.\\n\\n${tags}`, 2100);\n\nreturn [{ json: {\n  tema, fonte, imagem, tags,\n  linkedin, facebook, instagram,\n  facebookLink: url('facebook'),\n  temImagem: /^https:\\/\\//i.test(imagem),\n  aprovacao: String(cfg.SOCIAL_APPROVAL ?? 'true').toLowerCase() === 'true'\n} }];\n"
+        "jsCode": "const cfg = $('Configuração — Edite Aqui').first().json;\nconst base = $('Escolhe Tema (rodízio)').first().json;\nconst { tema, site, imagem } = base;\nconst resp = $input.first().json;\n\n// 1) Tenta ler o JSON gerado pela IA\nlet ia = null;\ntry {\n  const texto = (resp.content || []).map(c => c.text || '').join('').trim()\n    .replace(/^```(?:json)?/i, '').replace(/```$/, '').trim();\n  const j = JSON.parse(texto);\n  if (j && j.linkedin && j.facebook && j.instagram) ia = j;\n} catch (e) { ia = null; }\n\n// 2) Plano B sem IA: texto fixo e seguro, só com os fatos do tema\nconst cta = 'Conheça a ConectPbx.';\nconst plano = {\n  linkedin: `${tema.titulo}\\n\\n${tema.fatos}\\n\\n${cta}`,\n  facebook: `${tema.titulo}: ${tema.fatos} ${cta}`,\n  instagram: `${tema.titulo}\\n\\n${tema.fatos}\\n\\n${cta}`,\n  hashtags: ['telefoniaIP', 'PABX', 'TI', 'ConectPbx'],\n  imagem: `Modern flat illustration, square, dark navy background with orange accents, abstract technology scene about: ${tema.titulo}. No text, no letters, no logos, no people.`\n};\nconst src = ia || plano;\nconst fonte = ia ? 'ia' : 'plano_b';\n\nconst tags = (Array.isArray(src.hashtags) ? src.hashtags : plano.hashtags)\n  .map(t => String(t).replace(/[^\\p{L}\\p{N}_]/gu, '')).filter(Boolean).slice(0, 6)\n  .map(t => '#' + t).join(' ');\n\nconst url = rede => `${site}/?utm_source=${rede}&utm_medium=social&utm_campaign=${encodeURIComponent(tema.id)}`;\nconst corta = (s, n) => { s = String(s); return s.length <= n ? s : s.slice(0, n - 1).trimEnd() + '…'; };\n\nconst linkedin  = corta(`${src.linkedin}\\n\\n${url('linkedin')}\\n\\n${tags}`, 2900);\nconst facebook  = corta(`${src.facebook}\\n\\n${tags}`, 1800);\nconst instagram = corta(`${src.instagram}\\n\\nLink na bio.\\n\\n${tags}`, 2100);\n\nreturn [{ json: {\n  tema, fonte, imagem, tags,\n  imagemPrompt: String(src.imagem || plano.imagem).slice(0, 600),\n  gerarImagem: String(cfg.GERAR_IMAGEM ?? 'true').toLowerCase() === 'true',\n  modeloImagem: String(cfg.GEMINI_IMAGE_MODEL || 'gemini-2.5-flash-image'),\n  imgbbDias: Math.min(180, Math.max(1, Number(cfg.IMGBB_EXPIRA_DIAS) || 30)),\n  linkedin, facebook, instagram,\n  facebookLink: url('facebook'),\n  temImagem: /^https:\\/\\//i.test(imagem),\n  aprovacao: String(cfg.SOCIAL_APPROVAL ?? 'true').toLowerCase() === 'true'\n} }];\n"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -286,11 +286,11 @@
             "parameter": [
               {
                 "name": "message",
-                "value": "={{ $('Monta Posts').first().json.facebook }}"
+                "value": "={{ $('Define Imagem Final').first().json.facebook }}"
               },
               {
                 "name": "link",
-                "value": "={{ $('Monta Posts').first().json.facebookLink }}"
+                "value": "={{ $('Define Imagem Final').first().json.facebookLink }}"
               }
             ]
           }
@@ -324,7 +324,7 @@
           "conditions": [
             {
               "id": "c3",
-              "leftValue": "={{ $('Monta Posts').first().json.temImagem }}",
+              "leftValue": "={{ $('Define Imagem Final').first().json.temImagem }}",
               "rightValue": true,
               "operator": {
                 "type": "boolean",
@@ -357,11 +357,11 @@
             "parameter": [
               {
                 "name": "image_url",
-                "value": "={{ $('Monta Posts').first().json.imagem }}"
+                "value": "={{ $('Define Imagem Final').first().json.imagem }}"
               },
               {
                 "name": "caption",
-                "value": "={{ $('Monta Posts').first().json.instagram }}"
+                "value": "={{ $('Define Imagem Final').first().json.instagram }}"
               }
             ]
           }
@@ -418,7 +418,7 @@
     },
     {
       "parameters": {
-        "jsCode": "\nconst get = nome => { try { return $(nome).first().json; } catch (e) { return null; } };\nconst ok = (j, campo) => !!(j && !j.error && !j.errorMessage && (campo ? j[campo] : true));\nconst li = get('LinkedIn — Publicar');\nconst fb = get('Facebook — Publicar na Página');\nconst igc = get('Instagram — Criar Mídia');\nconst igp = get('Instagram — Publicar');\nconst post = get('Monta Posts');\nconst prep = get('LinkedIn — Preparar Texto');\n\nconst linhas = [\n  `LinkedIn: ${(prep && prep.pular) ? 'FALHOU (' + prep.motivo + ')' : (ok(li) ? 'publicado' : 'FALHOU')}`,\n  `Facebook: ${ok(fb, 'id') ? 'publicado' : 'FALHOU'}`,\n  `Instagram: ${post && !post.temImagem ? 'ignorado (sem imagem em SOCIAL_IMAGE_URL)' : (ok(igc, 'id') && ok(igp, 'id') ? 'publicado' : 'FALHOU')}`\n];\nconst houveFalha = linhas.some(l => l.includes('FALHOU'));\nconst html = `<div style=\"font-family:Arial,sans-serif;color:#0c1729\"><p><b>${houveFalha ? 'Alguma rede falhou' : 'Divulgação concluída'}</b>: ${String(post?.tema?.titulo || '')}</p><p style=\"white-space:pre-line\">${linhas.join('\\n')}</p>${houveFalha ? '<p style=\"color:#667;font-size:12px\">Confira a execução no n8n para ver o erro de cada rede.</p>' : ''}</div>`;\nreturn [{ json: { tema: post?.tema?.titulo, fonte: post?.fonte, resumo: linhas.join('\\n'), houveFalha, html } }];\n"
+        "jsCode": "\nconst get = nome => { try { return $(nome).first().json; } catch (e) { return null; } };\nconst ok = (j, campo) => !!(j && !j.error && !j.errorMessage && (campo ? j[campo] : true));\nconst li = get('LinkedIn — Publicar');\nconst fb = get('Facebook — Publicar Foto') || get('Facebook — Publicar na Página');\nconst igc = get('Instagram — Criar Mídia');\nconst igp = get('Instagram — Publicar');\nconst post = get('Define Imagem Final');\nconst prep = get('LinkedIn — Preparar Texto');\n\nconst linhas = [\n  `LinkedIn: ${(prep && prep.pular) ? 'FALHOU (' + prep.motivo + ')' : (ok(li) ? 'publicado' : 'FALHOU')}`,\n  `Facebook: ${ok(fb, 'id') ? 'publicado' : 'FALHOU'}`,\n  `Instagram: ${post && !post.temImagem ? 'ignorado (sem imagem' + (post.imagemAviso ? ': ' + post.imagemAviso : '') + ')' : (ok(igc, 'id') && ok(igp, 'id') ? 'publicado' : 'FALHOU')}`\n];\nconst houveFalha = linhas.some(l => l.includes('FALHOU'));\nconst html = `<div style=\"font-family:Arial,sans-serif;color:#0c1729\"><p><b>${houveFalha ? 'Alguma rede falhou' : 'Divulgação concluída'}</b>: ${String(post?.tema?.titulo || '')}</p><p style=\"white-space:pre-line\">${linhas.join('\\n')}</p>${houveFalha ? '<p style=\"color:#667;font-size:12px\">Confira a execução no n8n para ver o erro de cada rede.</p>' : ''}</div>`;\nreturn [{ json: { tema: post?.tema?.titulo, fonte: post?.fonte, resumo: linhas.join('\\n'), houveFalha, html } }];\n"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -459,7 +459,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const cfg = $('Configuração — Edite Aqui').first().json;\n// Texto no formato do LinkedIn (\"little text\"): caracteres reservados precisam de barra.\n// O \"#\" fica sem escape para as hashtags funcionarem.\nconst post = $('Monta Posts').first().json;\nconst escapa = s => String(s).replace(/([\\\\|{}@\\[\\]()<>*_~])/g, '\\\\$1');\nlet author = String(cfg.LINKEDIN_AUTHOR_URN ?? '').trim();\nif (!author) {\n  try { const me = $('LinkedIn — Descobrir Meu ID').first().json; if (me && me.sub) author = 'urn:li:person:' + me.sub; } catch (e) {}\n}\nif (!/^urn:li:(person|organization):[A-Za-z0-9_-]+$/.test(author)) {\n  // Não derruba o fluxo: o LinkedIn é pulado e o motivo aparece aqui e no e-mail de resultado.\n  return [{ json: { pular: true, motivo: 'Autor do LinkedIn indefinido. Confira a credencial (escopos openid profile w_member_social) ou preencha LINKEDIN_AUTHOR_URN no nó Configuração — Edite Aqui.' } }];\n}\nreturn [{ json: {\n  author,\n  version: String(cfg.LINKEDIN_API_VERSION ?? '202608'),\n  body: {\n    author,\n    commentary: escapa(post.linkedin).slice(0, 3000),\n    visibility: 'PUBLIC',\n    distribution: { feedDistribution: 'MAIN_FEED', targetEntities: [], thirdPartyDistributionChannels: [] },\n    lifecycleState: 'PUBLISHED',\n    isReshareDisabledByAuthor: false\n  }\n} }];\n"
+        "jsCode": "const cfg = $('Configuração — Edite Aqui').first().json;\n// Texto no formato do LinkedIn (\"little text\"): caracteres reservados precisam de barra.\n// O \"#\" fica sem escape para as hashtags funcionarem.\nconst post = $('Define Imagem Final').first().json;\nconst escapa = s => String(s).replace(/([\\\\|{}@\\[\\]()<>*_~])/g, '\\\\$1');\nlet author = String(cfg.LINKEDIN_AUTHOR_URN ?? '').trim();\nif (!author) {\n  try { const me = $('LinkedIn — Descobrir Meu ID').first().json; if (me && me.sub) author = 'urn:li:person:' + me.sub; } catch (e) {}\n}\nif (!/^urn:li:(person|organization):[A-Za-z0-9_-]+$/.test(author)) {\n  // Não derruba o fluxo: o LinkedIn é pulado e o motivo aparece aqui e no e-mail de resultado.\n  return [{ json: { pular: true, motivo: 'Autor do LinkedIn indefinido. Confira a credencial (escopos openid profile w_member_social) ou preencha LINKEDIN_AUTHOR_URN no nó Configuração — Edite Aqui.' } }];\n}\nreturn [{ json: {\n  author,\n  version: String(cfg.LINKEDIN_API_VERSION ?? '202608'),\n  body: {\n    author,\n    commentary: escapa(post.linkedin).slice(0, 3000),\n    visibility: 'PUBLIC',\n    distribution: { feedDistribution: 'MAIN_FEED', targetEntities: [], thirdPartyDistributionChannels: [] },\n    lifecycleState: 'PUBLISHED',\n    isReshareDisabledByAuthor: false\n  }\n} }];\n"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -472,7 +472,7 @@
     },
     {
       "parameters": {
-        "jsCode": "\nconst post = $('Monta Posts').first().json;\nconst h = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\\n/g,'<br>');\nconst bloco = (titulo, texto) => `<h3 style=\"margin:18px 0 6px;font-size:15px\">${titulo}</h3><div style=\"padding:12px 14px;background:#f4f6fa;border-radius:8px;font-size:14px;line-height:1.5\">${h(texto)}</div>`;\nconst link = $execution.resumeUrl;\nconst html = `<div style=\"font-family:Arial,sans-serif;max-width:640px;color:#0c1729\">\n<p style=\"font-size:15px\">Post para aprovar: <b>${h(post.tema.titulo)}</b> <span style=\"color:#667\">(texto: ${post.fonte === 'ia' ? 'gerado por IA' : 'plano B, sem IA'})</span></p>\n${bloco('LinkedIn', post.linkedin)}${bloco('Facebook', post.facebook)}${bloco('Instagram' + (post.temImagem ? '' : ' (sem imagem, será ignorado)'), post.instagram)}\n<p style=\"margin:26px 0 8px\"><a href=\"${link}\" style=\"background:#e4570f;color:#fff;padding:12px 22px;border-radius:8px;text-decoration:none;font-weight:bold\">Aprovar e publicar</a></p>\n<p style=\"font-size:12px;color:#667\">Para não publicar, ignore este e-mail. O rascunho expira em 48 horas. Não encaminhe este e-mail: quem tiver o link consegue aprovar.</p></div>`;\nreturn [{ json: { assunto: `[Aprovar post] ${post.tema.titulo}`, html } }];\n"
+        "jsCode": "\nconst post = $('Define Imagem Final').first().json;\nconst h = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\\n/g,'<br>');\nconst bloco = (titulo, texto) => `<h3 style=\"margin:18px 0 6px;font-size:15px\">${titulo}</h3><div style=\"padding:12px 14px;background:#f4f6fa;border-radius:8px;font-size:14px;line-height:1.5\">${h(texto)}</div>`;\nconst link = $execution.resumeUrl;\nconst html = `<div style=\"font-family:Arial,sans-serif;max-width:640px;color:#0c1729\">\n<p style=\"font-size:15px\">Post para aprovar: <b>${h(post.tema.titulo)}</b> <span style=\"color:#667\">(texto: ${post.fonte === 'ia' ? 'gerado por IA' : 'plano B, sem IA'})</span></p>\n${post.temImagem ? `<img src=\"${post.imagem}\" alt=\"Imagem do post\" style=\"max-width:100%;width:420px;border-radius:8px;margin:8px 0\"><p style=\"font-size:12px;color:#667\">Imagem: ${post.imagemOrigem === 'gemini' ? 'gerada pelo Gemini' : 'imagem fixa de reserva'}</p>` : `<p style=\"color:#a60\">Sem imagem${post.imagemAviso ? ' (' + h(post.imagemAviso) + ')' : ''}. O Instagram será ignorado.</p>`}${bloco('LinkedIn', post.linkedin)}${bloco('Facebook', post.facebook)}${bloco('Instagram' + (post.temImagem ? '' : ' (sem imagem, será ignorado)'), post.instagram)}\n<p style=\"margin:26px 0 8px\"><a href=\"${link}\" style=\"background:#e4570f;color:#fff;padding:12px 22px;border-radius:8px;text-decoration:none;font-weight:bold\">Aprovar e publicar</a></p>\n<p style=\"font-size:12px;color:#667\">Para não publicar, ignore este e-mail. O rascunho expira em 48 horas. Não encaminhe este e-mail: quem tiver o link consegue aprovar.</p></div>`;\nreturn [{ json: { assunto: `[Aprovar post] ${post.tema.titulo}`, html } }];\n"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -485,7 +485,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// EDITE AQUI: todas as configurações do workflow ficam neste nó (não precisa de \"Variables\" do n8n).\nconst CONFIG = {\n  // Site e conteúdo\n  SITE_URL: 'https://conectxip.com',\n  SOCIAL_IMAGE_URL: '',            // imagem pública https para o Instagram (vazio = pula o Instagram)\n  SOCIAL_AI_MODEL: 'claude-sonnet-5-5',\n\n  // Aprovação por e-mail (Gmail)\n  SOCIAL_APPROVAL: 'true',         // 'true' pede aprovação; 'false' publica direto\n  SOCIAL_APPROVER_EMAIL: 'seu-email@gmail.com',\n\n  // LinkedIn\n  LINKEDIN_AUTHOR_URN: '',         // vazio = usa o seu perfil automaticamente; ou urn:li:organization:NNNN\n  LINKEDIN_API_VERSION: '202608',\n\n  // Facebook e Instagram (IDs do Graph API)\n  FACEBOOK_PAGE_ID: '',\n  INSTAGRAM_USER_ID: ''\n};\nreturn [{ json: CONFIG }];\n"
+        "jsCode": "// EDITE AQUI: todas as configurações do workflow ficam neste nó (não precisa de \"Variables\" do n8n).\nconst CONFIG = {\n  // Site e conteúdo\n  SITE_URL: 'https://conectxip.com',\n  SOCIAL_IMAGE_URL: '',            // imagem fixa de reserva, usada se o Gemini falhar (vazio = sem reserva)\n  SOCIAL_AI_MODEL: 'claude-sonnet-5-5',\n\n  // Imagens geradas pelo Gemini e hospedadas no imgbb\n  GERAR_IMAGEM: 'true',            // 'false' usa só a imagem fixa de SOCIAL_IMAGE_URL\n  GEMINI_IMAGE_MODEL: 'gemini-2.5-flash-image',\n  IMGBB_EXPIRA_DIAS: '30',         // de 1 a 180\n\n  // Aprovação por e-mail (Gmail)\n  SOCIAL_APPROVAL: 'true',         // 'true' pede aprovação; 'false' publica direto\n  SOCIAL_APPROVER_EMAIL: 'seu-email@gmail.com',\n\n  // LinkedIn\n  LINKEDIN_AUTHOR_URN: '',         // vazio = usa o seu perfil automaticamente; ou urn:li:organization:NNNN\n  LINKEDIN_API_VERSION: '202608',\n\n  // Facebook e Instagram (IDs do Graph API)\n  FACEBOOK_PAGE_ID: '',\n  INSTAGRAM_USER_ID: ''\n};\nreturn [{ json: CONFIG }];\n"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -555,6 +555,244 @@
       ],
       "id": "n22",
       "name": "IF — Pular LinkedIn?"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "c22",
+              "leftValue": "={{ $json.gerarImagem }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1040,
+        -380
+      ],
+      "id": "n23",
+      "name": "IF — Gerar Imagem?"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://generativelanguage.googleapis.com/v1beta/models/{{ $json.modeloImagem }}:generateContent",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ { contents: [{ parts: [{ text: $json.imagemPrompt }] }], generationConfig: { responseModalities: ['IMAGE'], imageConfig: { aspectRatio: '1:1' } } } }}",
+        "options": {
+          "timeout": 120000
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1300,
+        -380
+      ],
+      "id": "n24",
+      "name": "Gemini — Gerar Imagem",
+      "onError": "continueRegularOutput",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "",
+          "name": "Gemini API (x-goog-api-key)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "\nconst r = $input.first().json;\nconst parts = (r.candidates && r.candidates[0] && r.candidates[0].content && r.candidates[0].content.parts) || [];\nconst achado = parts.find(p => p.inlineData || p.inline_data);\nconst d = achado && (achado.inlineData || achado.inline_data);\nif (!d || !d.data) {\n  return [{ json: { semImagem: true, motivo: String((r.error && (r.error.message || r.error)) || r.message || 'Gemini não devolveu imagem').slice(0, 300) } }];\n}\nreturn [{ json: { semImagem: false, b64: d.data, mime: d.mimeType || d.mime_type || 'image/png' } }];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1560,
+        -380
+      ],
+      "id": "n25",
+      "name": "Extrai Imagem"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "c25",
+              "leftValue": "={{ $json.semImagem === false }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1820,
+        -380
+      ],
+      "id": "n26",
+      "name": "IF — Gemini Devolveu Imagem?"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.imgbb.com/1/upload",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpQueryAuth",
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "image",
+              "value": "={{ $json.b64 }}"
+            },
+            {
+              "name": "name",
+              "value": "={{ 'conectpbx-' + Date.now() }}"
+            },
+            {
+              "name": "expiration",
+              "value": "={{ $('Monta Posts').first().json.imgbbDias * 86400 }}"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 60000
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2080,
+        -380
+      ],
+      "id": "n27",
+      "name": "imgbb — Hospedar Imagem",
+      "onError": "continueRegularOutput",
+      "credentials": {
+        "httpQueryAuth": {
+          "id": "",
+          "name": "imgbb (key)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "\nconst base = $('Monta Posts').first().json;\nlet url = '', origem = 'nenhuma', motivo = '';\ntry {\n  const r = $('imgbb — Hospedar Imagem').first().json;\n  const u = r && r.data && r.data.url;\n  if (/^https:\\/\\//i.test(String(u || ''))) { url = u; origem = 'gemini'; }\n  else motivo = 'imgbb não devolveu URL';\n} catch (e) {}\nif (!url) {\n  try {\n    const g = $('Extrai Imagem').first().json;\n    if (g && g.semImagem) motivo = 'Gemini: ' + g.motivo;\n  } catch (e) {}\n  url = String(base.imagem || '').trim();\n  if (/^https:\\/\\//i.test(url)) origem = 'fixa';\n}\nreturn [{ json: { ...base, imagem: url, temImagem: /^https:\\/\\//i.test(url), imagemOrigem: origem, imagemAviso: motivo } }];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2340,
+        -380
+      ],
+      "id": "n28",
+      "name": "Define Imagem Final"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "c28",
+              "leftValue": "={{ $('Define Imagem Final').first().json.temImagem }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1430,
+        370
+      ],
+      "id": "n29",
+      "name": "IF — FB com Imagem?"
+    },
+    {
+      "parameters": {
+        "graphApiVersion": "v23.0",
+        "node": "={{ $('Configuração — Edite Aqui').first().json.FACEBOOK_PAGE_ID }}",
+        "edge": "photos",
+        "httpRequestMethod": "POST",
+        "options": {
+          "queryParameters": {
+            "parameter": [
+              {
+                "name": "url",
+                "value": "={{ $('Define Imagem Final').first().json.imagem }}"
+              },
+              {
+                "name": "caption",
+                "value": "={{ $('Define Imagem Final').first().json.facebook + '\\n\\n' + $('Define Imagem Final').first().json.facebookLink }}"
+              }
+            ]
+          }
+        }
+      },
+      "type": "n8n-nodes-base.facebookGraphApi",
+      "typeVersion": 1,
+      "position": [
+        1560,
+        370
+      ],
+      "id": "n30",
+      "name": "Facebook — Publicar Foto",
+      "onError": "continueRegularOutput",
+      "credentials": {
+        "facebookGraphApi": {
+          "id": "",
+          "name": "Facebook Graph (token da Página)"
+        }
+      }
     }
   ],
   "connections": {
@@ -606,7 +844,7 @@
       "main": [
         [
           {
-            "node": "IF — Exige Aprovação?",
+            "node": "IF — Gerar Imagem?",
             "type": "main",
             "index": 0
           }
@@ -664,7 +902,7 @@
       "main": [
         [
           {
-            "node": "Facebook — Publicar na Página",
+            "node": "IF — FB com Imagem?",
             "type": "main",
             "index": 0
           }
@@ -792,7 +1030,7 @@
       "main": [
         [
           {
-            "node": "Facebook — Publicar na Página",
+            "node": "IF — FB com Imagem?",
             "type": "main",
             "index": 0
           }
@@ -800,6 +1038,115 @@
         [
           {
             "node": "LinkedIn — Publicar",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF — Gerar Imagem?": {
+      "main": [
+        [
+          {
+            "node": "Gemini — Gerar Imagem",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Define Imagem Final",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gemini — Gerar Imagem": {
+      "main": [
+        [
+          {
+            "node": "Extrai Imagem",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extrai Imagem": {
+      "main": [
+        [
+          {
+            "node": "IF — Gemini Devolveu Imagem?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF — Gemini Devolveu Imagem?": {
+      "main": [
+        [
+          {
+            "node": "imgbb — Hospedar Imagem",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Define Imagem Final",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "imgbb — Hospedar Imagem": {
+      "main": [
+        [
+          {
+            "node": "Define Imagem Final",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Define Imagem Final": {
+      "main": [
+        [
+          {
+            "node": "IF — Exige Aprovação?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF — FB com Imagem?": {
+      "main": [
+        [
+          {
+            "node": "Facebook — Publicar Foto",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Facebook — Publicar na Página",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Facebook — Publicar Foto": {
+      "main": [
+        [
+          {
+            "node": "IF — Tem Imagem?",
             "type": "main",
             "index": 0
           }
