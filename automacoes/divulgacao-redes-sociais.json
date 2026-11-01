@@ -66,7 +66,7 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ { model: $('Configuração — Edite Aqui').first().json.SOCIAL_AI_MODEL || 'claude-sonnet-5-5', max_tokens: 1500, messages: [{ role: 'user', content: \"Você escreve posts de redes sociais em português do Brasil para a ConectPbx, empresa de telefonia IP e TI de São Paulo (PABX IP ConnectX, monitoramento, consultoria, integrações e desenvolvimento).\\nTema do post: {{TITULO}}\\nFatos permitidos (use apenas isto): {{FATOS}}\\n\\nRegras:\\n- Não invente números, preços, prazos, clientes, prêmios ou depoimentos.\\n- Tom profissional e direto, sem exageros, sem emojis em excesso (no máximo 2).\\n- Cada versão deve terminar convidando a conhecer o site, sem escrever o endereço (ele será adicionado depois).\\n- LinkedIn: 500 a 900 caracteres, com abertura que chame atenção.\\n- Facebook: 250 a 450 caracteres.\\n- Instagram: 300 a 600 caracteres.\\n- hashtags: de 4 a 6, sem espaços, sem \\\"#\\\" no início de cada item.\\n- imagem: descrição visual em inglês, de 1 a 2 frases, para gerar uma ilustração quadrada moderna do tema. Sem texto, sem letras, sem logotipos, sem rostos de pessoas reais. Paleta azul-marinho escuro com detalhes em laranja.\\n\\nResponda somente com JSON válido neste formato, sem texto fora dele:\\n{\\\"linkedin\\\":\\\"...\\\",\\\"facebook\\\":\\\"...\\\",\\\"instagram\\\":\\\"...\\\",\\\"hashtags\\\":[\\\"...\\\",\\\"...\\\"],\\\"imagem\\\":\\\"...\\\"}\".replace('{{TITULO}}', $json.tema.titulo).replace('{{FATOS}}', $json.tema.fatos) }] } }}",
+        "jsonBody": "={{ $json.requestBody }}",
         "options": {
           "timeout": 60000
         }
@@ -793,6 +793,19 @@
           "name": "Facebook Graph (token da Página)"
         }
       }
+    },
+    {
+      "parameters": {
+        "jsCode": "const cfg = $('Configuração — Edite Aqui').first().json;\nconst { tema } = $input.first().json;\n\nconst prompt = `Você escreve posts de redes sociais em português do Brasil para a ConectPbx, empresa de telefonia IP e TI de São Paulo (PABX IP ConnectX, monitoramento, consultoria, integrações e desenvolvimento).\nTema do post: ${tema.titulo}\nFatos permitidos (use apenas isto): ${tema.fatos}\n\nRegras:\n- Não invente números, preços, prazos, clientes, prêmios ou depoimentos.\n- Tom profissional e direto, sem exageros, sem emojis em excesso (no máximo 2).\n- Cada versão deve terminar convidando a conhecer o site, sem escrever o endereço (ele será adicionado depois).\n- LinkedIn: 500 a 900 caracteres, com abertura que chame atenção.\n- Facebook: 250 a 450 caracteres.\n- Instagram: 300 a 600 caracteres.\n- hashtags: de 4 a 6, sem espaços, sem \"#\" no início de cada item.\n- imagem: descrição visual em inglês, de 1 a 2 frases, para gerar uma ilustração quadrada moderna do tema. Sem texto, sem letras, sem logotipos, sem rostos de pessoas reais. Paleta azul-marinho escuro com detalhes em laranja.\n\nResponda somente com JSON válido neste formato, sem texto fora dele:\n{\"linkedin\":\"...\",\"facebook\":\"...\",\"instagram\":\"...\",\"hashtags\":[\"...\",\"...\"],\"imagem\":\"...\"}`;\n\nreturn [{ json: {\n  tema,\n  requestBody: {\n    model: String(cfg.SOCIAL_AI_MODEL || 'claude-sonnet-5-5'),\n    max_tokens: 1500,\n    messages: [{ role: 'user', content: prompt }]\n  }\n} }];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        390,
+        250
+      ],
+      "id": "n31",
+      "name": "Prepara Pedido — Claude"
     }
   ],
   "connections": {
@@ -822,7 +835,7 @@
       "main": [
         [
           {
-            "node": "Claude — Gerar Textos",
+            "node": "Prepara Pedido — Claude",
             "type": "main",
             "index": 0
           }
@@ -1147,6 +1160,17 @@
         [
           {
             "node": "IF — Tem Imagem?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepara Pedido — Claude": {
+      "main": [
+        [
+          {
+            "node": "Claude — Gerar Textos",
             "type": "main",
             "index": 0
           }
