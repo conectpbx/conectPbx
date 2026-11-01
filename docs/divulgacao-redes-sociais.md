@@ -59,6 +59,8 @@ Não coloque tokens nem senhas nesse nó. Eles ficam nas credenciais do n8n.
 
 ## Imagens
 
+**Nó nativo do Gemini (opcional):** o workflow vem com uma chamada HTTP ao Gemini, que não depende de nenhum nó especial. Se preferir o nó nativo *Google Gemini*, troque no editor: apague o nó **Gemini — Gerar Imagem**, adicione o nó *Google Gemini* com *Resource: Image* e *Operation: Generate an Image*, escolha a credencial *Google Gemini (PaLM) API*, modelo de imagem, e no prompt use `{{ $json.imagemPrompt }}`. Ligue a saída do **IF — Gerar Imagem?** (saída verdadeira) nele e a saída dele no **Extrai Imagem**. O **Extrai Imagem** aceita as duas formas (arquivo do nó nativo ou resposta HTTP).
+
 - O prompt pede ilustração quadrada, sem texto, sem logotipos e sem pessoas, em azul-marinho com laranja. Texto dentro de imagens gerada por IA pode vir com letras erradas, por isso o texto fica no post.
 - A imagem aparece no e-mail de aprovação. Se não gostar, não aprove e rode o fluxo de novo.
 - As imagens do Gemini têm marca d'água invisível (SynthID). Considere indicar nas redes que são geradas por IA.
