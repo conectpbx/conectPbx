@@ -9,7 +9,7 @@ Importe em *n8n → Workflows → Import from file*. Depois selecione as credenc
 2. **Tema:** escolhe em rodízio entre 8 temas baseados no que o site já afirma (ramal remoto, ligações por valor fixo, Slack + Zoho Desk, monitoramento, consultoria, CRM e mensagens, portaria remota, sistemas sob medida).
 3. **Texto:** o Claude escreve uma versão para LinkedIn, Facebook e Instagram, usando só os fatos do tema (sem inventar números, preços ou clientes). Se a IA falhar, entra um texto fixo e seguro.
 4. **Link:** acrescenta o site com `utm_source` de cada rede, para medir o retorno no Analytics.
-5. **Imagem:** o Claude descreve a imagem, o **Gemini** a gera e o **imgbb** a hospeda numa URL pública. Se o Gemini ou o imgbb falharem, o fluxo usa a imagem fixa de reserva (`SOCIAL_IMAGE_URL`) ou segue sem imagem.
+5. **Imagem:** o Claude descreve a imagem, o **GPT Image (OpenAI)** ou o **Gemini** a gera e o **imgbb** a hospeda numa URL pública. Se o Gemini ou o imgbb falharem, o fluxo usa a imagem fixa de reserva (`SOCIAL_IMAGE_URL`) ou segue sem imagem.
 6. **Aprovação (padrão):** envia o rascunho por **Gmail** com o botão "Aprovar e publicar". Só publica depois de clicar. Em 48 h sem aprovação, o post é descartado.
 7. **Publicação:** LinkedIn (página da empresa), Facebook (Página) e Instagram (conta profissional, exige imagem).
 8. **Resultado:** envia um e-mail dizendo o que foi publicado e o que falhou.
@@ -24,6 +24,9 @@ Todas as configurações ficam em um único nó de código no início do fluxo, 
 | `SOCIAL_APPROVAL` | `'true'` pede aprovação por e-mail; `'false'` publica direto |
 | `SOCIAL_APPROVER_EMAIL` | e-mail de quem aprova e recebe os avisos (vários, separados por vírgula) |
 | `GERAR_IMAGEM` | `'true'` gera a imagem com o Gemini; `'false'` usa só a imagem fixa |
+| `IMAGE_PROVIDER` | `'openai'` (GPT Image, padrão) ou `'gemini'` |
+| `OPENAI_IMAGE_MODEL` | modelo de imagem da OpenAI (padrão `gpt-image-1-mini`; há também `gpt-image-1.5` e `gpt-image-2`). Confira nomes e preços no painel da OpenAI |
+| `OPENAI_IMAGE_QUALITY` | `low`, `medium` ou `high` |
 | `GEMINI_IMAGE_MODEL` | modelo de imagem do Gemini (padrão `gemini-2.5-flash-image`). Confira no Google AI Studio se há um mais novo |
 | `IMGBB_EXPIRA_DIAS` | por quantos dias a imagem fica no imgbb (1 a 180) |
 | `SOCIAL_IMAGE_URL` | imagem fixa de reserva (https), usada se o Gemini falhar. Vazio = sem reserva |
@@ -47,7 +50,8 @@ Não coloque tokens nem senhas nesse nó. Eles ficam nas credenciais do n8n.
   - Copie a *OAuth Redirect URL* para *Authorized redirect URLs* do app no LinkedIn.
   - **Perfil pessoal:** no app, ative os produtos *Share on LinkedIn* e *Sign In with LinkedIn using OpenID Connect*. O workflow descobre o seu ID sozinho (`GET /v2/userinfo`), então `LINKEDIN_AUTHOR_URN` pode ficar vazio.
   - **Página da empresa:** exige o produto *Community Management API* aprovado e que você seja administrador da página. O erro `unauthorized_scope_error` indica que isso ainda não foi liberado.
-- **Gemini:** credencial *Header Auth* com nome `x-goog-api-key` e a chave criada no Google AI Studio.
+- **OpenAI:** credencial *OpenAI API* do n8n, com uma chave que tenha crédito/billing ativo. A imagem sai em JPEG, formato aceito pelo Instagram.
+- **Gemini (se usar):** credencial *Header Auth* com nome `x-goog-api-key` e a chave criada no Google AI Studio.
 - **imgbb:** credencial *Query Auth* com nome `key` e a chave de API do imgbb (api.imgbb.com).
 - **Facebook e Instagram:** crie um app na Meta for Developers e gere um token **de Página** de longa duração com `pages_manage_posts`, `pages_read_engagement`, `instagram_basic` e `instagram_content_publish`. A conta do Instagram precisa ser profissional e estar ligada à Página.
 
