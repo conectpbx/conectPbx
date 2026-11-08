@@ -635,7 +635,7 @@
         -380
       ],
       "id": "n26",
-      "name": "IF — Gemini Devolveu Imagem?"
+      "name": "IF — Imagem Gerada?"
     },
     {
       "parameters": {
@@ -1092,14 +1092,14 @@
       "main": [
         [
           {
-            "node": "IF — Gemini Devolveu Imagem?",
+            "node": "IF — Imagem Gerada?",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "IF — Gemini Devolveu Imagem?": {
+    "IF — Imagem Gerada?": {
       "main": [
         [
           {
