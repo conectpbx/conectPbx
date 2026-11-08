@@ -9,7 +9,7 @@ Importe em *n8n → Workflows → Import from file*. Depois selecione as credenc
 2. **Tema:** escolhe em rodízio entre 8 temas baseados no que o site já afirma (ramal remoto, ligações por valor fixo, Slack + Zoho Desk, monitoramento, consultoria, CRM e mensagens, portaria remota, sistemas sob medida).
 3. **Texto:** o Claude escreve uma versão para LinkedIn, Facebook e Instagram, usando só os fatos do tema (sem inventar números, preços ou clientes). Se a IA falhar, entra um texto fixo e seguro.
 4. **Link:** acrescenta o site com `utm_source` de cada rede, para medir o retorno no Analytics.
-5. **Imagem:** o Claude descreve a imagem, o **FLUX (NVIDIA)**, o **GPT Image (OpenAI)** ou o **Gemini** a gera e o **imgbb** a hospeda numa URL pública. Se o Gemini ou o imgbb falharem, o fluxo usa a imagem fixa de reserva (`SOCIAL_IMAGE_URL`) ou segue sem imagem.
+5. **Imagem:** o Claude descreve a imagem, o **FLUX.1-schnell (Cloudflare Workers AI)** a gera e o **imgbb** a hospeda numa URL pública. Se a Cloudflare ou o imgbb falharem, o fluxo usa a imagem fixa de reserva (`SOCIAL_IMAGE_URL`) ou segue sem imagem.
 6. **Aprovação (padrão):** envia o rascunho por **Gmail** com o botão "Aprovar e publicar". Só publica depois de clicar. Em 48 h sem aprovação, o post é descartado.
 7. **Publicação:** LinkedIn (página da empresa), Facebook (Página) e Instagram (conta profissional, exige imagem).
 8. **Resultado:** envia um e-mail dizendo o que foi publicado e o que falhou.
@@ -23,14 +23,11 @@ Todas as configurações ficam em um único nó de código no início do fluxo, 
 | `SITE_URL` | endereço do site |
 | `SOCIAL_APPROVAL` | `'true'` pede aprovação por e-mail; `'false'` publica direto |
 | `SOCIAL_APPROVER_EMAIL` | e-mail de quem aprova e recebe os avisos (vários, separados por vírgula) |
-| `GERAR_IMAGEM` | `'true'` gera a imagem com o Gemini; `'false'` usa só a imagem fixa |
-| `IMAGE_PROVIDER` | `'nvidia'` (FLUX, padrão), `'openai'` (GPT Image) ou `'gemini'` |
-| `NVIDIA_IMAGE_MODEL` | modelo da NVIDIA (padrão `black-forest-labs/flux.1-schnell`, liberado para uso comercial). Não use o `flux.1-dev`: é só para uso não comercial |
-| `OPENAI_IMAGE_MODEL` | modelo de imagem da OpenAI (padrão `gpt-image-1-mini`; há também `gpt-image-1.5` e `gpt-image-2`). Confira nomes e preços no painel da OpenAI |
-| `OPENAI_IMAGE_QUALITY` | `low`, `medium` ou `high` |
-| `GEMINI_IMAGE_MODEL` | modelo de imagem do Gemini (padrão `gemini-2.5-flash-image`). Confira no Google AI Studio se há um mais novo |
+| `GERAR_IMAGEM` | `'true'` gera a imagem com o Cloudflare Workers AI; `'false'` usa só a imagem fixa |
+| `CLOUDFLARE_ACCOUNT_ID` | ID da conta Cloudflare (32 caracteres), no painel em *Workers & Pages* |
+| `CLOUDFLARE_IMAGE_MODEL` | modelo de imagem (padrão `@cf/black-forest-labs/flux-1-schnell`) |
 | `IMGBB_EXPIRA_DIAS` | por quantos dias a imagem fica no imgbb (1 a 180) |
-| `SOCIAL_IMAGE_URL` | imagem fixa de reserva (https), usada se o Gemini falhar. Vazio = sem reserva |
+| `SOCIAL_IMAGE_URL` | imagem fixa de reserva (https), usada se a geração falhar. Vazio = sem reserva |
 | `SOCIAL_AI_MODEL` | modelo do Claude |
 | `LINKEDIN_AUTHOR_URN` | vazio = publica no seu perfil automaticamente; ou `urn:li:organization:NNNN` para a página |
 | `LINKEDIN_API_VERSION` | versão da API do LinkedIn (`AAAAMM`). O LinkedIn desativa cada versão após cerca de 1 ano, então atualize a cada 6 meses. Erro "version is not active" = versão antiga demais |
@@ -51,9 +48,7 @@ Não coloque tokens nem senhas nesse nó. Eles ficam nas credenciais do n8n.
   - Copie a *OAuth Redirect URL* para *Authorized redirect URLs* do app no LinkedIn.
   - **Perfil pessoal:** no app, ative os produtos *Share on LinkedIn* e *Sign In with LinkedIn using OpenID Connect*. O workflow descobre o seu ID sozinho (`GET /v2/userinfo`), então `LINKEDIN_AUTHOR_URN` pode ficar vazio.
   - **Página da empresa:** exige o produto *Community Management API* aprovado e que você seja administrador da página. O erro `unauthorized_scope_error` indica que isso ainda não foi liberado.
-- **NVIDIA:** crie a chave em build.nvidia.com e uma credencial *Header Auth* no n8n com nome `Authorization` e valor `Bearer nvapi-...`. Leia os termos do *NVIDIA API Trial* antes de usar em divulgação comercial; o serviço de teste pode não ser destinado a produção. O formato exato da resposta é confirmado no primeiro teste: o nó **Extrai Imagem** aceita `artifacts[0].base64`, `image` e `data[0].b64_json`. A imagem costuma vir em PNG; se o Instagram recusar, é preciso converter para JPEG.
-- **OpenAI:** credencial *OpenAI API* do n8n, com uma chave que tenha crédito/billing ativo. A imagem sai em JPEG, formato aceito pelo Instagram.
-- **Gemini (se usar):** credencial *Header Auth* com nome `x-goog-api-key` e a chave criada no Google AI Studio.
+- **Cloudflare (imagens):** crie um *API Token* com permissão **Workers AI** (My Profile → API Tokens). No n8n, crie uma credencial *Header Auth* com nome `Authorization` e valor `Bearer <token>`. O ID da conta vai no nó de configuração. A imagem sai em JPEG, formato aceito pelo Instagram.
 - **imgbb:** credencial *Query Auth* com nome `key` e a chave de API do imgbb (api.imgbb.com).
 - **Facebook e Instagram:** crie um app na Meta for Developers e gere um token **de Página** de longa duração com `pages_manage_posts`, `pages_read_engagement`, `instagram_basic` e `instagram_content_publish`. A conta do Instagram precisa ser profissional e estar ligada à Página.
 
@@ -65,14 +60,15 @@ Não coloque tokens nem senhas nesse nó. Eles ficam nas credenciais do n8n.
 
 ## Imagens
 
-**Nó nativo do Gemini (opcional):** o workflow vem com uma chamada HTTP ao Gemini, que não depende de nenhum nó especial. Se preferir o nó nativo *Google Gemini*, troque no editor: apague o nó **Gemini — Gerar Imagem**, adicione o nó *Google Gemini* com *Resource: Image* e *Operation: Generate an Image*, escolha a credencial *Google Gemini (PaLM) API*, modelo de imagem, e no prompt use `{{ $json.imagemPrompt }}`. Ligue a saída do **IF — Gerar Imagem?** (saída verdadeira) nele e a saída dele no **Extrai Imagem**. O **Extrai Imagem** aceita as duas formas (arquivo do nó nativo ou resposta HTTP).
+Para trocar de provedor de imagem no futuro, basta substituir o nó **Cloudflare — Gerar Imagem**: o **Extrai Imagem** entrega o resultado ao resto do fluxo.
 
 - O prompt pede ilustração quadrada, sem texto, sem logotipos e sem pessoas, em azul-marinho com laranja. Texto dentro de imagens gerada por IA pode vir com letras erradas, por isso o texto fica no post.
 - A imagem aparece no e-mail de aprovação. Se não gostar, não aprove e rode o fluxo de novo.
-- As imagens do Gemini têm marca d'água invisível (SynthID). Considere indicar nas redes que são geradas por IA.
+- Considere indicar nas redes que as imagens são geradas por IA.
+- O FLUX.1-schnell segue os termos da Black Forest Labs. A Cloudflare informa retenção zero de dados no modelo. Confira os termos e os limites gratuitos do Workers AI no painel antes de ativar em produção.
 - O imgbb é um serviço gratuito de terceiros: as imagens ficam acessíveis por link público. Use apenas conteúdo que pode ser público. A chave da API é pessoal.
 - Facebook: com imagem, o post sai como foto com legenda e o link do site. Sem imagem, sai como texto com link.
-- Instagram: a API do Instagram documenta imagens em JPEG. O Gemini costuma devolver PNG. Se o Instagram recusar a imagem, é preciso converter para JPEG antes de publicar (me avise).
+- Instagram: a API documenta imagens em JPEG, e o FLUX.1-schnell na Cloudflare devolve JPEG.
 - LinkedIn: por enquanto o post sai só com texto e link. O envio de imagem no LinkedIn é uma segunda etapa.
 
 ## Limites e cuidados

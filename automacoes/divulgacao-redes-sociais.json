@@ -89,7 +89,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const cfg = $('Configuração — Edite Aqui').first().json;\nconst base = $('Escolhe Tema (rodízio)').first().json;\nconst { tema, site, imagem } = base;\nconst resp = $input.first().json;\n\n// 1) Tenta ler o JSON gerado pela IA\nlet ia = null;\ntry {\n  const texto = (resp.content || []).map(c => c.text || '').join('').trim()\n    .replace(/^```(?:json)?/i, '').replace(/```$/, '').trim();\n  const j = JSON.parse(texto);\n  if (j && j.linkedin && j.facebook && j.instagram) ia = j;\n} catch (e) { ia = null; }\n\n// 2) Plano B sem IA: texto fixo e seguro, só com os fatos do tema\nconst cta = 'Conheça a ConectPbx.';\nconst plano = {\n  linkedin: `${tema.titulo}\\n\\n${tema.fatos}\\n\\n${cta}`,\n  facebook: `${tema.titulo}: ${tema.fatos} ${cta}`,\n  instagram: `${tema.titulo}\\n\\n${tema.fatos}\\n\\n${cta}`,\n  hashtags: ['telefoniaIP', 'PABX', 'TI', 'ConectPbx'],\n  imagem: `Modern flat illustration, square, dark navy background with orange accents, abstract technology scene about: ${tema.titulo}. No text, no letters, no logos, no people.`\n};\nconst src = ia || plano;\nconst fonte = ia ? 'ia' : 'plano_b';\n\nconst tags = (Array.isArray(src.hashtags) ? src.hashtags : plano.hashtags)\n  .map(t => String(t).replace(/[^\\p{L}\\p{N}_]/gu, '')).filter(Boolean).slice(0, 6)\n  .map(t => '#' + t).join(' ');\n\nconst url = rede => `${site}/?utm_source=${rede}&utm_medium=social&utm_campaign=${encodeURIComponent(tema.id)}`;\nconst corta = (s, n) => { s = String(s); return s.length <= n ? s : s.slice(0, n - 1).trimEnd() + '…'; };\n\nconst linkedin  = corta(`${src.linkedin}\\n\\n${url('linkedin')}\\n\\n${tags}`, 2900);\nconst facebook  = corta(`${src.facebook}\\n\\n${tags}`, 1800);\nconst instagram = corta(`${src.instagram}\\n\\nLink na bio.\\n\\n${tags}`, 2100);\n\nreturn [{ json: {\n  tema, fonte, imagem, tags,\n  imagemPrompt: String(src.imagem || plano.imagem).slice(0, 600),\n  modeloNvidia: String(cfg.NVIDIA_IMAGE_MODEL || 'black-forest-labs/flux.1-schnell'),\n  provedorImagem: String(cfg.IMAGE_PROVIDER || 'openai').toLowerCase(),\n  modeloOpenai: String(cfg.OPENAI_IMAGE_MODEL || 'gpt-image-1-mini'),\n  qualidadeOpenai: String(cfg.OPENAI_IMAGE_QUALITY || 'medium'),\n  gerarImagem: String(cfg.GERAR_IMAGEM ?? 'true').toLowerCase() === 'true',\n  modeloImagem: String(cfg.GEMINI_IMAGE_MODEL || 'gemini-2.5-flash-image'),\n  imgbbDias: Math.min(180, Math.max(1, Number(cfg.IMGBB_EXPIRA_DIAS) || 30)),\n  linkedin, facebook, instagram,\n  facebookLink: url('facebook'),\n  temImagem: /^https:\\/\\//i.test(imagem),\n  aprovacao: String(cfg.SOCIAL_APPROVAL ?? 'true').toLowerCase() === 'true'\n} }];\n"
+        "jsCode": "const cfg = $('Configuração — Edite Aqui').first().json;\nconst base = $('Escolhe Tema (rodízio)').first().json;\nconst { tema, site, imagem } = base;\nconst resp = $input.first().json;\n\n// 1) Tenta ler o JSON gerado pela IA\nlet ia = null;\ntry {\n  const texto = (resp.content || []).map(c => c.text || '').join('').trim()\n    .replace(/^```(?:json)?/i, '').replace(/```$/, '').trim();\n  const j = JSON.parse(texto);\n  if (j && j.linkedin && j.facebook && j.instagram) ia = j;\n} catch (e) { ia = null; }\n\n// 2) Plano B sem IA: texto fixo e seguro, só com os fatos do tema\nconst cta = 'Conheça a ConectPbx.';\nconst plano = {\n  linkedin: `${tema.titulo}\\n\\n${tema.fatos}\\n\\n${cta}`,\n  facebook: `${tema.titulo}: ${tema.fatos} ${cta}`,\n  instagram: `${tema.titulo}\\n\\n${tema.fatos}\\n\\n${cta}`,\n  hashtags: ['telefoniaIP', 'PABX', 'TI', 'ConectPbx'],\n  imagem: `Modern flat illustration, square, dark navy background with orange accents, abstract technology scene about: ${tema.titulo}. No text, no letters, no logos, no people.`\n};\nconst src = ia || plano;\nconst fonte = ia ? 'ia' : 'plano_b';\n\nconst tags = (Array.isArray(src.hashtags) ? src.hashtags : plano.hashtags)\n  .map(t => String(t).replace(/[^\\p{L}\\p{N}_]/gu, '')).filter(Boolean).slice(0, 6)\n  .map(t => '#' + t).join(' ');\n\nconst url = rede => `${site}/?utm_source=${rede}&utm_medium=social&utm_campaign=${encodeURIComponent(tema.id)}`;\nconst corta = (s, n) => { s = String(s); return s.length <= n ? s : s.slice(0, n - 1).trimEnd() + '…'; };\n\nconst linkedin  = corta(`${src.linkedin}\\n\\n${url('linkedin')}\\n\\n${tags}`, 2900);\nconst facebook  = corta(`${src.facebook}\\n\\n${tags}`, 1800);\nconst instagram = corta(`${src.instagram}\\n\\nLink na bio.\\n\\n${tags}`, 2100);\n\nreturn [{ json: {\n  tema, fonte, imagem, tags,\n  imagemPrompt: String(src.imagem || plano.imagem).slice(0, 600),\n  gerarImagem: String(cfg.GERAR_IMAGEM ?? 'true').toLowerCase() === 'true',\n  imgbbDias: Math.min(180, Math.max(1, Number(cfg.IMGBB_EXPIRA_DIAS) || 30)),\n  linkedin, facebook, instagram,\n  facebookLink: url('facebook'),\n  temImagem: /^https:\\/\\//i.test(imagem),\n  aprovacao: String(cfg.SOCIAL_APPROVAL ?? 'true').toLowerCase() === 'true'\n} }];\n"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -472,7 +472,7 @@
     },
     {
       "parameters": {
-        "jsCode": "\nconst post = $('Define Imagem Final').first().json;\nconst h = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\\n/g,'<br>');\nconst bloco = (titulo, texto) => `<h3 style=\"margin:18px 0 6px;font-size:15px\">${titulo}</h3><div style=\"padding:12px 14px;background:#f4f6fa;border-radius:8px;font-size:14px;line-height:1.5\">${h(texto)}</div>`;\nconst link = $execution.resumeUrl;\nconst html = `<div style=\"font-family:Arial,sans-serif;max-width:640px;color:#0c1729\">\n<p style=\"font-size:15px\">Post para aprovar: <b>${h(post.tema.titulo)}</b> <span style=\"color:#667\">(texto: ${post.fonte === 'ia' ? 'gerado por IA' : 'plano B, sem IA'})</span></p>\n${post.temImagem ? `<img src=\"${post.imagem}\" alt=\"Imagem do post\" style=\"max-width:100%;width:420px;border-radius:8px;margin:8px 0\"><p style=\"font-size:12px;color:#667\">Imagem: ${post.imagemOrigem === 'gemini' ? 'gerada pelo Gemini' : (post.imagemOrigem === 'openai' ? 'gerada pelo GPT Image' : post.imagemOrigem === 'nvidia' ? 'gerada pelo FLUX (NVIDIA)' : 'imagem fixa de reserva')}</p>` : `<p style=\"color:#a60\">Sem imagem${post.imagemAviso ? ' (' + h(post.imagemAviso) + ')' : ''}. O Instagram será ignorado.</p>`}${bloco('LinkedIn', post.linkedin)}${bloco('Facebook', post.facebook)}${bloco('Instagram' + (post.temImagem ? '' : ' (sem imagem, será ignorado)'), post.instagram)}\n<p style=\"margin:26px 0 8px\"><a href=\"${link}\" style=\"background:#e4570f;color:#fff;padding:12px 22px;border-radius:8px;text-decoration:none;font-weight:bold\">Aprovar e publicar</a></p>\n<p style=\"font-size:12px;color:#667\">Para não publicar, ignore este e-mail. O rascunho expira em 48 horas. Não encaminhe este e-mail: quem tiver o link consegue aprovar.</p></div>`;\nreturn [{ json: { assunto: `[Aprovar post] ${post.tema.titulo}`, html } }];\n"
+        "jsCode": "\nconst post = $('Define Imagem Final').first().json;\nconst h = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\\n/g,'<br>');\nconst bloco = (titulo, texto) => `<h3 style=\"margin:18px 0 6px;font-size:15px\">${titulo}</h3><div style=\"padding:12px 14px;background:#f4f6fa;border-radius:8px;font-size:14px;line-height:1.5\">${h(texto)}</div>`;\nconst link = $execution.resumeUrl;\nconst html = `<div style=\"font-family:Arial,sans-serif;max-width:640px;color:#0c1729\">\n<p style=\"font-size:15px\">Post para aprovar: <b>${h(post.tema.titulo)}</b> <span style=\"color:#667\">(texto: ${post.fonte === 'ia' ? 'gerado por IA' : 'plano B, sem IA'})</span></p>\n${post.temImagem ? `<img src=\"${post.imagem}\" alt=\"Imagem do post\" style=\"max-width:100%;width:420px;border-radius:8px;margin:8px 0\"><p style=\"font-size:12px;color:#667\">Imagem: ${post.imagemOrigem === 'cloudflare' ? 'gerada pelo FLUX (Cloudflare)' : 'imagem fixa de reserva'}</p>` : `<p style=\"color:#a60\">Sem imagem${post.imagemAviso ? ' (' + h(post.imagemAviso) + ')' : ''}. O Instagram será ignorado.</p>`}${bloco('LinkedIn', post.linkedin)}${bloco('Facebook', post.facebook)}${bloco('Instagram' + (post.temImagem ? '' : ' (sem imagem, será ignorado)'), post.instagram)}\n<p style=\"margin:26px 0 8px\"><a href=\"${link}\" style=\"background:#e4570f;color:#fff;padding:12px 22px;border-radius:8px;text-decoration:none;font-weight:bold\">Aprovar e publicar</a></p>\n<p style=\"font-size:12px;color:#667\">Para não publicar, ignore este e-mail. O rascunho expira em 48 horas. Não encaminhe este e-mail: quem tiver o link consegue aprovar.</p></div>`;\nreturn [{ json: { assunto: `[Aprovar post] ${post.tema.titulo}`, html } }];\n"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -485,7 +485,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// EDITE AQUI: todas as configurações do workflow ficam neste nó (não precisa de \"Variables\" do n8n).\nconst CONFIG = {\n  // Site e conteúdo\n  SITE_URL: 'https://conectxip.com',\n  SOCIAL_IMAGE_URL: '',            // imagem fixa de reserva, usada se o Gemini falhar (vazio = sem reserva)\n  SOCIAL_AI_MODEL: 'claude-sonnet-5-5',\n\n  // Imagens geradas pelo Gemini e hospedadas no imgbb\n  GERAR_IMAGEM: 'true',            // 'false' usa só a imagem fixa de SOCIAL_IMAGE_URL\n  IMAGE_PROVIDER: 'nvidia',        // 'nvidia' (FLUX), 'openai' (GPT Image) ou 'gemini'\n  NVIDIA_IMAGE_MODEL: 'black-forest-labs/flux.1-schnell',  // use schnell (uso comercial); o flux.1-dev é só não comercial\n  OPENAI_IMAGE_MODEL: 'gpt-image-1-mini',   // outros: gpt-image-1.5, gpt-image-2 (confira no painel da OpenAI)\n  OPENAI_IMAGE_QUALITY: 'medium',  // low, medium ou high\n  GEMINI_IMAGE_MODEL: 'gemini-2.5-flash-image',\n  IMGBB_EXPIRA_DIAS: '30',         // de 1 a 180\n\n  // Aprovação por e-mail (Gmail)\n  SOCIAL_APPROVAL: 'true',         // 'true' pede aprovação; 'false' publica direto\n  SOCIAL_APPROVER_EMAIL: 'seu-email@gmail.com',\n\n  // LinkedIn\n  LINKEDIN_AUTHOR_URN: '',         // vazio = usa o seu perfil automaticamente; ou urn:li:organization:NNNN\n  LINKEDIN_API_VERSION: '202608',\n\n  // Facebook e Instagram (IDs do Graph API)\n  FACEBOOK_PAGE_ID: '',\n  INSTAGRAM_USER_ID: ''\n};\nreturn [{ json: CONFIG }];\n"
+        "jsCode": "// EDITE AQUI: todas as configurações do workflow ficam neste nó (não precisa de \"Variables\" do n8n).\nconst CONFIG = {\n  // Site e conteúdo\n  SITE_URL: 'https://conectxip.com',\n  SOCIAL_IMAGE_URL: '',            // imagem fixa de reserva, usada se a geração falhar (vazio = sem reserva)\n  SOCIAL_AI_MODEL: 'claude-sonnet-5-5',\n\n  // Imagens geradas pelo Cloudflare Workers AI (FLUX.1-schnell) e hospedadas no imgbb\n  GERAR_IMAGEM: 'true',            // 'false' usa só a imagem fixa de SOCIAL_IMAGE_URL\n  CLOUDFLARE_ACCOUNT_ID: '',       // ID da conta (32 caracteres), no painel da Cloudflare\n  CLOUDFLARE_IMAGE_MODEL: '@cf/black-forest-labs/flux-1-schnell',\n  IMGBB_EXPIRA_DIAS: '30',         // de 1 a 180\n\n  // Aprovação por e-mail (Gmail)\n  SOCIAL_APPROVAL: 'true',         // 'true' pede aprovação; 'false' publica direto\n  SOCIAL_APPROVER_EMAIL: 'seu-email@gmail.com',\n\n  // LinkedIn\n  LINKEDIN_AUTHOR_URN: '',         // vazio = usa o seu perfil automaticamente; ou urn:li:organization:NNNN\n  LINKEDIN_API_VERSION: '202608',\n\n  // Facebook e Instagram (IDs do Graph API)\n  FACEBOOK_PAGE_ID: '',\n  INSTAGRAM_USER_ID: ''\n};\nreturn [{ json: CONFIG }];\n"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -592,36 +592,7 @@
     },
     {
       "parameters": {
-        "method": "POST",
-        "url": "=https://generativelanguage.googleapis.com/v1beta/models/{{ $json.modeloImagem }}:generateContent",
-        "authentication": "genericCredentialType",
-        "genericAuthType": "httpHeaderAuth",
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={{ $json.geminiBody }}",
-        "options": {
-          "timeout": 120000
-        }
-      },
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
-      "position": [
-        1300,
-        -380
-      ],
-      "id": "n24",
-      "name": "Gemini — Gerar Imagem",
-      "onError": "continueRegularOutput",
-      "credentials": {
-        "httpHeaderAuth": {
-          "id": "",
-          "name": "Gemini API (x-goog-api-key)"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "jsCode": "\nconst item = $input.first();\nconst r = item.json || {};\n\n// 1) Nó nativo do Gemini: a imagem vem como arquivo (binário)\nif (item.binary) {\n  const campo = Object.keys(item.binary).find(k => String((item.binary[k] || {}).mimeType || '').startsWith('image/')) || Object.keys(item.binary)[0];\n  if (campo) {\n    const buf = await this.helpers.getBinaryDataBuffer(0, campo);\n    return [{ json: { semImagem: false, b64: buf.toString('base64'), mime: item.binary[campo].mimeType || 'image/png' } }];\n  }\n}\n\n// 2) OpenAI (GPT Image): data[0].b64_json\nif (Array.isArray(r.data) && r.data[0] && r.data[0].b64_json) {\n  return [{ json: { semImagem: false, b64: r.data[0].b64_json, mime: 'image/jpeg' } }];\n}\n\n// 3) NVIDIA (FLUX): artifacts[0].base64, image ou data[0].b64_json (formato confirmado no primeiro teste)\nconst nv = (Array.isArray(r.artifacts) && r.artifacts[0] && (r.artifacts[0].base64 || r.artifacts[0].b64_json))\n  || (typeof r.image === 'string' && r.image)\n  || (Array.isArray(r.images) && r.images[0] && (r.images[0].base64 || r.images[0]));\nif (typeof nv === 'string' && nv.length > 100) {\n  const limpo = nv.replace(/^data:image\\/[a-z]+;base64,/i, '');\n  const mime = limpo.startsWith('/9j/') ? 'image/jpeg' : (limpo.startsWith('UklGR') ? 'image/webp' : 'image/png');\n  return [{ json: { semImagem: false, b64: limpo, mime } }];\n}\n\n// 4) Gemini por HTTP direto: a imagem vem em base64 dentro do JSON\nconst parts = (r.candidates && r.candidates[0] && r.candidates[0].content && r.candidates[0].content.parts) || [];\nconst achado = parts.find(p => p.inlineData || p.inline_data);\nconst d = achado && (achado.inlineData || achado.inline_data);\nif (!d || !d.data) {\n  return [{ json: { semImagem: true, motivo: String((r.error && (r.error.message || r.error)) || r.detail || r.title || r.message || 'O provedor de imagem não devolveu imagem').slice(0, 300) } }];\n}\nreturn [{ json: { semImagem: false, b64: d.data, mime: d.mimeType || d.mime_type || 'image/png' } }];\n"
+        "jsCode": "\nconst r = $input.first().json || {};\n\n// Resposta da API REST da Cloudflare: { result: { image: \"<base64>\" }, success: true }\nconst img = (r.result && r.result.image) || r.image || '';\nif (typeof img === 'string' && img.length > 100) {\n  const limpo = img.replace(/^data:image\\/[a-z]+;base64,/i, '');\n  const mime = limpo.startsWith('iVBOR') ? 'image/png' : (limpo.startsWith('UklGR') ? 'image/webp' : 'image/jpeg');\n  return [{ json: { semImagem: false, b64: limpo, mime } }];\n}\n\nconst erro = Array.isArray(r.errors) && r.errors[0] ? (r.errors[0].message || JSON.stringify(r.errors[0])) : '';\nreturn [{ json: { semImagem: true, motivo: String(erro || (r.error && (r.error.message || r.error)) || r.message || 'A Cloudflare não devolveu imagem').slice(0, 300) } }];\n"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -712,7 +683,7 @@
     },
     {
       "parameters": {
-        "jsCode": "\nconst base = $('Monta Posts').first().json;\nlet url = '', origem = 'nenhuma', motivo = '';\ntry {\n  const r = $('imgbb — Hospedar Imagem').first().json;\n  const u = r && r.data && r.data.url;\n  if (/^https:\\/\\//i.test(String(u || ''))) { url = u; origem = ['openai', 'nvidia'].includes(base.provedorImagem) ? base.provedorImagem : 'gemini'; }\n  else motivo = 'imgbb não devolveu URL';\n} catch (e) {}\nif (!url) {\n  try {\n    const g = $('Extrai Imagem').first().json;\n    if (g && g.semImagem) motivo = 'Imagem: ' + g.motivo;\n  } catch (e) {}\n  url = String(base.imagem || '').trim();\n  if (/^https:\\/\\//i.test(url)) origem = 'fixa';\n}\nreturn [{ json: { ...base, imagem: url, temImagem: /^https:\\/\\//i.test(url), imagemOrigem: origem, imagemAviso: motivo } }];\n"
+        "jsCode": "\nconst base = $('Monta Posts').first().json;\nlet url = '', origem = 'nenhuma', motivo = '';\ntry {\n  const r = $('imgbb — Hospedar Imagem').first().json;\n  const u = r && r.data && r.data.url;\n  if (/^https:\\/\\//i.test(String(u || ''))) { url = u; origem = 'cloudflare'; }\n  else motivo = 'imgbb não devolveu URL';\n} catch (e) {}\nif (!url) {\n  try {\n    const g = $('Extrai Imagem').first().json;\n    if (g && g.semImagem) motivo = 'Imagem: ' + g.motivo;\n  } catch (e) {}\n  url = String(base.imagem || '').trim();\n  if (/^https:\\/\\//i.test(url)) origem = 'fixa';\n}\nreturn [{ json: { ...base, imagem: url, temImagem: /^https:\\/\\//i.test(url), imagemOrigem: origem, imagemAviso: motivo } }];\n"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -809,7 +780,7 @@
     },
     {
       "parameters": {
-        "jsCode": "\nconst b = $input.first().json;\nreturn [{ json: { ...b,\n  nvidiaBody: { prompt: b.imagemPrompt, width: 1024, height: 1024, steps: 4, seed: 0 },\n  openaiBody: { model: b.modeloOpenai, prompt: b.imagemPrompt, size: '1024x1024', quality: b.qualidadeOpenai, output_format: 'jpeg', n: 1 },\n  geminiBody: { contents: [{ parts: [{ text: b.imagemPrompt }] }], generationConfig: { responseModalities: ['IMAGE'], imageConfig: { aspectRatio: '1:1' } } }\n} }];\n"
+        "jsCode": "\nconst cfg = $('Configuração — Edite Aqui').first().json;\nconst b = $input.first().json;\nconst conta = String(cfg.CLOUDFLARE_ACCOUNT_ID || '').trim();\nconst modelo = String(cfg.CLOUDFLARE_IMAGE_MODEL || '@cf/black-forest-labs/flux-1-schnell').trim();\nreturn [{ json: { ...b,\n  cfUrl: `https://api.cloudflare.com/client/v4/accounts/${conta}/ai/run/${modelo}`,\n  cfBody: { prompt: String(b.imagemPrompt).slice(0, 2000), steps: 4 }\n} }];\n"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -822,119 +793,13 @@
     },
     {
       "parameters": {
-        "conditions": {
-          "options": {
-            "caseSensitive": true,
-            "leftValue": "",
-            "typeValidation": "loose",
-            "version": 2
-          },
-          "conditions": [
-            {
-              "id": "cop",
-              "leftValue": "={{ $json.provedorImagem === 'openai' }}",
-              "rightValue": true,
-              "operator": {
-                "type": "boolean",
-                "operation": "true",
-                "singleValue": true
-              }
-            }
-          ],
-          "combinator": "and"
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 2.2,
-      "position": [
-        1170,
-        -380
-      ],
-      "id": "n33",
-      "name": "IF — Usar OpenAI?"
-    },
-    {
-      "parameters": {
         "method": "POST",
-        "url": "https://api.openai.com/v1/images/generations",
-        "authentication": "predefinedCredentialType",
-        "nodeCredentialType": "openAiApi",
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={{ $json.openaiBody }}",
-        "options": {
-          "timeout": 180000
-        }
-      },
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
-      "position": [
-        1300,
-        -550
-      ],
-      "id": "n34",
-      "name": "OpenAI — Gerar Imagem",
-      "onError": "continueRegularOutput",
-      "credentials": {
-        "openAiApi": {
-          "id": "",
-          "name": "OpenAI"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "conditions": {
-          "options": {
-            "caseSensitive": true,
-            "leftValue": "",
-            "typeValidation": "loose",
-            "version": 2
-          },
-          "conditions": [
-            {
-              "id": "cnv",
-              "leftValue": "={{ $json.provedorImagem === 'nvidia' }}",
-              "rightValue": true,
-              "operator": {
-                "type": "boolean",
-                "operation": "true",
-                "singleValue": true
-              }
-            }
-          ],
-          "combinator": "and"
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 2.2,
-      "position": [
-        1170,
-        -210
-      ],
-      "id": "n35",
-      "name": "IF — Usar NVIDIA?"
-    },
-    {
-      "parameters": {
-        "method": "POST",
-        "url": "=https://ai.api.nvidia.com/v1/genai/{{ $json.modeloNvidia }}",
+        "url": "={{ $json.cfUrl }}",
         "authentication": "genericCredentialType",
         "genericAuthType": "httpHeaderAuth",
-        "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [
-            {
-              "name": "Accept",
-              "value": "application/json"
-            }
-          ]
-        },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ $json.nvidiaBody }}",
+        "jsonBody": "={{ $json.cfBody }}",
         "options": {
           "timeout": 120000
         }
@@ -943,15 +808,15 @@
       "typeVersion": 4.2,
       "position": [
         1300,
-        -40
+        -380
       ],
-      "id": "n36",
-      "name": "NVIDIA — Gerar Imagem",
+      "id": "n32",
+      "name": "Cloudflare — Gerar Imagem",
       "onError": "continueRegularOutput",
       "credentials": {
         "httpHeaderAuth": {
           "id": "",
-          "name": "NVIDIA API (Bearer)"
+          "name": "Cloudflare API (Bearer)"
         }
       }
     }
@@ -1223,17 +1088,6 @@
         ]
       ]
     },
-    "Gemini — Gerar Imagem": {
-      "main": [
-        [
-          {
-            "node": "Extrai Imagem",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "Extrai Imagem": {
       "main": [
         [
@@ -1329,61 +1183,14 @@
       "main": [
         [
           {
-            "node": "IF — Usar OpenAI?",
+            "node": "Cloudflare — Gerar Imagem",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "IF — Usar OpenAI?": {
-      "main": [
-        [
-          {
-            "node": "OpenAI — Gerar Imagem",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "IF — Usar NVIDIA?",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "OpenAI — Gerar Imagem": {
-      "main": [
-        [
-          {
-            "node": "Extrai Imagem",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "IF — Usar NVIDIA?": {
-      "main": [
-        [
-          {
-            "node": "NVIDIA — Gerar Imagem",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Gemini — Gerar Imagem",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "NVIDIA — Gerar Imagem": {
+    "Cloudflare — Gerar Imagem": {
       "main": [
         [
           {
