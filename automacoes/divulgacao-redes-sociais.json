@@ -66,7 +66,7 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ $json.requestBody }}",
+        "jsonBody": "={{ JSON.stringify($json.requestBody) }}",
         "options": {
           "timeout": 60000
         }
@@ -248,7 +248,7 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ $json.body }}",
+        "jsonBody": "={{ JSON.stringify($json.body) }}",
         "options": {
           "response": {
             "response": {
@@ -799,7 +799,7 @@
         "genericAuthType": "httpHeaderAuth",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ $json.cfBody }}",
+        "jsonBody": "={{ JSON.stringify($json.cfBody) }}",
         "options": {
           "timeout": 120000
         }
@@ -875,7 +875,7 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ $json.initBody }}",
+        "jsonBody": "={{ JSON.stringify($json.initBody) }}",
         "options": {
           "timeout": 30000
         }
