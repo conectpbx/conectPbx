@@ -69,7 +69,7 @@ Para trocar de provedor de imagem no futuro, basta substituir o nó **Cloudflare
 - O imgbb é um serviço gratuito de terceiros: as imagens ficam acessíveis por link público. Use apenas conteúdo que pode ser público. A chave da API é pessoal.
 - Facebook: com imagem, o post sai como foto com legenda e o link do site. Sem imagem, sai como texto com link.
 - Instagram: a API documenta imagens em JPEG, e o FLUX.1-schnell na Cloudflare devolve JPEG.
-- LinkedIn: por enquanto o post sai só com texto e link. O envio de imagem no LinkedIn é uma segunda etapa.
+- LinkedIn: com imagem, o fluxo segue o processo oficial em 4 passos: inicia o upload (`/rest/images?action=initializeUpload`), baixa a imagem do imgbb, envia o arquivo ao LinkedIn e publica o post com a imagem (`content.media`). Se qualquer passo falhar, o post sai só com texto, e o e-mail de resultado avisa. As imagens do LinkedIn aceitam JPG, PNG e GIF.
 
 ## Limites e cuidados
 
