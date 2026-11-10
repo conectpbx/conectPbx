@@ -6,10 +6,10 @@ Importe em *n8n → Workflows → Import from file*. Depois selecione as credenc
 ## O que faz
 
 1. **Agenda:** segunda, quarta e sexta às 10h (fuso de São Paulo). Também há um gatilho manual.
-2. **Tema:** escolhe em rodízio entre 8 temas baseados no que o site já afirma (ramal remoto, ligações por valor fixo, Slack + Zoho Desk, monitoramento, consultoria, CRM e mensagens, portaria remota, sistemas sob medida).
-3. **Texto:** o Claude escreve uma versão para LinkedIn, Facebook e Instagram, usando só os fatos do tema (sem inventar números, preços ou clientes). Se a IA falhar, entra um texto fixo e seguro.
+2. **Tema:** sorteia um entre 8 temas (nunca repete o último; ou usa `TEMA_PERSONALIZADO`, se preenchido) baseados no que o site já afirma (ramal remoto, ligações por valor fixo, Slack + Zoho Desk, monitoramento, consultoria, CRM e mensagens, portaria remota, sistemas sob medida).
+3. **Texto:** o Claude escreve uma versão para LinkedIn, Facebook e Instagram, usando só os fatos do tema (sem inventar números, preços ou clientes). Cada post recebe um ângulo de abertura sorteado e a lista dos posts recentes, para não repetir. Se a IA falhar, entra um texto fixo e seguro, e o e-mail de aprovação informa o motivo da falha (ex.: chave da API inválida).
 4. **Link:** acrescenta o site com `utm_source` de cada rede, para medir o retorno no Analytics.
-5. **Imagem:** o Claude descreve a imagem, o **FLUX.1-schnell (Cloudflare Workers AI)** a gera e o **imgbb** a hospeda numa URL pública. Se a Cloudflare ou o imgbb falharem, o fluxo usa a imagem fixa de reserva (`SOCIAL_IMAGE_URL`) ou segue sem imagem.
+5. **Imagem:** um segundo passo do Claude ("direção de arte") lê o texto do post e escreve um prompt detalhado em inglês (metáfora visual, composição, estilo, paleta, iluminação, restrições). O **FLUX.1-schnell (Cloudflare Workers AI)** a gera e o **imgbb** a hospeda numa URL pública. Se a Cloudflare ou o imgbb falharem, o fluxo usa a imagem fixa de reserva (`SOCIAL_IMAGE_URL`) ou segue sem imagem.
 6. **Aprovação (padrão):** envia o rascunho por **Gmail** com o botão "Aprovar e publicar". Só publica depois de clicar. Em 48 h sem aprovação, o post é descartado.
 7. **Publicação:** LinkedIn (página da empresa), Facebook (Página) e Instagram (conta profissional, exige imagem).
 8. **Resultado:** envia um e-mail dizendo o que foi publicado e o que falhou.
@@ -21,6 +21,7 @@ Todas as configurações ficam em um único nó de código no início do fluxo, 
 | Campo | Para quê |
 |---|---|
 | `SITE_URL` | endereço do site |
+| `TEMA_PERSONALIZADO` / `FATOS_PERSONALIZADOS` | opcional: força um assunto e os fatos reais a usar (vazio = sorteio automático) |
 | `SOCIAL_APPROVAL` | `'true'` pede aprovação por e-mail; `'false'` publica direto |
 | `SOCIAL_APPROVER_EMAIL` | e-mail de quem aprova e recebe os avisos (vários, separados por vírgula) |
 | `GERAR_IMAGEM` | `'true'` gera a imagem com o Cloudflare Workers AI; `'false'` usa só a imagem fixa |
@@ -59,6 +60,8 @@ Não coloque tokens nem senhas nesse nó. Eles ficam nas credenciais do n8n.
 3. Só então ative o workflow.
 
 ## Imagens
+
+O prompt usado aparece no e-mail de aprovação. Se a direção de arte falhar, usa-se o prompt padrão do tema. O FLUX roda com 6 passos.
 
 Para trocar de provedor de imagem no futuro, basta substituir o nó **Cloudflare — Gerar Imagem**: o **Extrai Imagem** entrega o resultado ao resto do fluxo.
 
