@@ -74,18 +74,18 @@
         80
       ],
       "id": "n04",
-      "name": "Azure OpenAI — Gerar Textos",
+      "name": "Groq — Gerar Textos",
       "onError": "continueRegularOutput",
       "credentials": {
         "httpHeaderAuth": {
           "id": "",
-          "name": "Azure OpenAI (api-key)"
+          "name": "Groq API (Bearer)"
         }
       }
     },
     {
       "parameters": {
-        "jsCode": "const cfg = $('Configuração — Edite Aqui').first().json;\nconst base = $('Escolhe Tema (rodízio)').first().json;\nconst { tema, site, imagem } = base;\nconst resp = $input.first().json;\n\n// 1) Tenta ler o JSON gerado pela IA (tolera texto antes/depois do JSON)\nlet ia = null, iaMotivo = '';\ntry {\n  const ch = (resp.choices || [])[0] || {};\n  const bruto = String((ch.message && ch.message.content) || '').trim();\n  if (!bruto) {\n    const e = resp.error;\n    iaMotivo = String((e && (e.message || e.description)) || (typeof e === 'string' ? e : '') || resp.message || (ch.finish_reason ? 'resposta vazia (' + ch.finish_reason + ')' : 'resposta vazia da API do Azure OpenAI')).slice(0, 200);\n  } else {\n    const j = JSON.parse(bruto.slice(bruto.indexOf('{'), bruto.lastIndexOf('}') + 1));\n    if (j && j.linkedin && j.facebook && j.instagram) ia = j;\n    else iaMotivo = 'o JSON da IA veio sem os campos esperados';\n  }\n} catch (e) { iaMotivo = 'não foi possível ler a resposta da IA: ' + String(e.message).slice(0, 100); }\n\n// 2) Plano B sem IA: texto fixo e seguro, só com os fatos do tema\nconst cta = 'Conheça a ConectPbx.';\nconst plano = {\n  linkedin: `${tema.titulo}\\n\\n${tema.fatos}\\n\\n${cta}`,\n  facebook: `${tema.titulo}: ${tema.fatos} ${cta}`,\n  instagram: `${tema.titulo}\\n\\n${tema.fatos}\\n\\n${cta}`,\n  hashtags: ['telefoniaIP', 'PABX', 'TI', 'ConectPbx'],\n  imagem: `Modern flat illustration, square, dark navy background with orange accents, abstract technology scene about: ${tema.titulo}. No text, no letters, no logos, no people.`\n};\nconst src = ia || plano;\nconst fonte = ia ? 'ia' : 'plano_b';\nif (ia) {\n  const sd = $getWorkflowStaticData('global');\n  sd.recentes = [...(Array.isArray(sd.recentes) ? sd.recentes : []), String(ia.linkedin).replace(/\\s+/g, ' ').slice(0, 90)].slice(-6);\n}\n\nconst tags = (Array.isArray(src.hashtags) ? src.hashtags : plano.hashtags)\n  .map(t => String(t).replace(/[^\\p{L}\\p{N}_]/gu, '')).filter(Boolean).slice(0, 6)\n  .map(t => '#' + t).join(' ');\n\nconst url = rede => `${site}/?utm_source=${rede}&utm_medium=social&utm_campaign=${encodeURIComponent(tema.id)}`;\nconst corta = (s, n) => { s = String(s); return s.length <= n ? s : s.slice(0, n - 1).trimEnd() + '…'; };\n\nconst linkedin  = corta(`${src.linkedin}\\n\\n${url('linkedin')}\\n\\n${tags}`, 2900);\nconst facebook  = corta(`${src.facebook}\\n\\n${tags}`, 1800);\nconst instagram = corta(`${src.instagram}\\n\\nLink na bio.\\n\\n${tags}`, 2100);\n\nreturn [{ json: {\n  tema, fonte, iaMotivo: ia ? '' : iaMotivo, imagem, tags,\n  imagemPrompt: String(src.imagem || plano.imagem).slice(0, 600),\n  gerarImagem: String(cfg.GERAR_IMAGEM ?? 'true').toLowerCase() === 'true',\n  imgbbDias: Math.min(180, Math.max(1, Number(cfg.IMGBB_EXPIRA_DIAS) || 30)),\n  linkedin, facebook, instagram,\n  facebookLink: url('facebook'),\n  temImagem: /^https:\\/\\//i.test(imagem),\n  aprovacao: String(cfg.SOCIAL_APPROVAL ?? 'true').toLowerCase() === 'true'\n} }];\n"
+        "jsCode": "const cfg = $('Configuração — Edite Aqui').first().json;\nconst base = $('Escolhe Tema (rodízio)').first().json;\nconst { tema, site, imagem } = base;\nconst resp = $input.first().json;\n\n// 1) Tenta ler o JSON gerado pela IA (tolera texto antes/depois do JSON)\nlet ia = null, iaMotivo = '';\ntry {\n  const ch = (resp.choices || [])[0] || {};\n  const bruto = String((ch.message && ch.message.content) || '').trim();\n  if (!bruto) {\n    const e = resp.error;\n    iaMotivo = String((e && (e.message || e.description)) || (typeof e === 'string' ? e : '') || resp.message || (ch.finish_reason ? 'resposta vazia (' + ch.finish_reason + ')' : 'resposta vazia da API do Groq')).slice(0, 200);\n  } else {\n    const j = JSON.parse(bruto.slice(bruto.indexOf('{'), bruto.lastIndexOf('}') + 1));\n    if (j && j.linkedin && j.facebook && j.instagram) ia = j;\n    else iaMotivo = 'o JSON da IA veio sem os campos esperados';\n  }\n} catch (e) { iaMotivo = 'não foi possível ler a resposta da IA: ' + String(e.message).slice(0, 100); }\n\n// 2) Plano B sem IA: texto fixo e seguro, só com os fatos do tema\nconst cta = 'Conheça a ConectPbx.';\nconst plano = {\n  linkedin: `${tema.titulo}\\n\\n${tema.fatos}\\n\\n${cta}`,\n  facebook: `${tema.titulo}: ${tema.fatos} ${cta}`,\n  instagram: `${tema.titulo}\\n\\n${tema.fatos}\\n\\n${cta}`,\n  hashtags: ['telefoniaIP', 'PABX', 'TI', 'ConectPbx'],\n  imagem: `Modern flat illustration, square, dark navy background with orange accents, abstract technology scene about: ${tema.titulo}. No text, no letters, no logos, no people.`\n};\nconst src = ia || plano;\nconst fonte = ia ? 'ia' : 'plano_b';\nif (ia) {\n  const sd = $getWorkflowStaticData('global');\n  sd.recentes = [...(Array.isArray(sd.recentes) ? sd.recentes : []), String(ia.linkedin).replace(/\\s+/g, ' ').slice(0, 90)].slice(-6);\n}\n\nconst tags = (Array.isArray(src.hashtags) ? src.hashtags : plano.hashtags)\n  .map(t => String(t).replace(/[^\\p{L}\\p{N}_]/gu, '')).filter(Boolean).slice(0, 6)\n  .map(t => '#' + t).join(' ');\n\nconst url = rede => `${site}/?utm_source=${rede}&utm_medium=social&utm_campaign=${encodeURIComponent(tema.id)}`;\nconst corta = (s, n) => { s = String(s); return s.length <= n ? s : s.slice(0, n - 1).trimEnd() + '…'; };\n\nconst linkedin  = corta(`${src.linkedin}\\n\\n${url('linkedin')}\\n\\n${tags}`, 2900);\nconst facebook  = corta(`${src.facebook}\\n\\n${tags}`, 1800);\nconst instagram = corta(`${src.instagram}\\n\\nLink na bio.\\n\\n${tags}`, 2100);\n\nreturn [{ json: {\n  tema, fonte, iaMotivo: ia ? '' : iaMotivo, imagem, tags,\n  imagemPrompt: String(src.imagem || plano.imagem).slice(0, 600),\n  gerarImagem: String(cfg.GERAR_IMAGEM ?? 'true').toLowerCase() === 'true',\n  imgbbDias: Math.min(180, Math.max(1, Number(cfg.IMGBB_EXPIRA_DIAS) || 30)),\n  linkedin, facebook, instagram,\n  facebookLink: url('facebook'),\n  temImagem: /^https:\\/\\//i.test(imagem),\n  aprovacao: String(cfg.SOCIAL_APPROVAL ?? 'true').toLowerCase() === 'true'\n} }];\n"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -481,7 +481,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// EDITE AQUI: todas as configurações do workflow ficam neste nó (não precisa de \"Variables\" do n8n).\nconst CONFIG = {\n  // Site e conteúdo\n  SITE_URL: 'https://conectxip.com',\n  SOCIAL_IMAGE_URL: '',            // imagem fixa de reserva, usada se a geração falhar (vazio = sem reserva)\n  TEMA_PERSONALIZADO: '',          // opcional: assunto do post (vazio = rodízio automático dos temas)\n  FATOS_PERSONALIZADOS: '',        // opcional: fatos reais sobre o assunto (a IA só usa o que estiver aqui)\n  // IA de texto: Azure OpenAI (nome do recurso e do deployment no portal do Azure AI Foundry / Azure OpenAI)\n  AZURE_OPENAI_ENDPOINT: 'https://SEU-RECURSO.openai.azure.com',\n  AZURE_OPENAI_DEPLOYMENT: '',     // nome do deployment (ex.: gpt-4o, gpt-4.1, gpt-5-mini)\n  AZURE_OPENAI_API_VERSION: '2024-10-21',\n\n  // Imagens geradas pelo Cloudflare Workers AI (FLUX.1-schnell) e hospedadas no imgbb\n  GERAR_IMAGEM: 'true',            // 'false' usa só a imagem fixa de SOCIAL_IMAGE_URL\n  CLOUDFLARE_ACCOUNT_ID: '',       // ID da conta (32 caracteres), no painel da Cloudflare\n  CLOUDFLARE_IMAGE_MODEL: '@cf/black-forest-labs/flux-1-schnell',\n  IMGBB_EXPIRA_DIAS: '30',         // de 1 a 180\n\n  // Aprovação por e-mail (Gmail)\n  SOCIAL_APPROVAL: 'true',         // 'true' pede aprovação; 'false' publica direto\n  SOCIAL_APPROVER_EMAIL: 'seu-email@gmail.com',\n\n  // LinkedIn\n  LINKEDIN_AUTHOR_URN: '',         // vazio = usa o seu perfil automaticamente; ou urn:li:organization:NNNN\n  LINKEDIN_API_VERSION: '202608',\n\n  // Facebook e Instagram (IDs do Graph API)\n  FACEBOOK_PAGE_ID: '',\n  INSTAGRAM_USER_ID: ''\n};\nreturn [{ json: CONFIG }];\n"
+        "jsCode": "// EDITE AQUI: todas as configurações do workflow ficam neste nó (não precisa de \"Variables\" do n8n).\nconst CONFIG = {\n  // Site e conteúdo\n  SITE_URL: 'https://conectxip.com',\n  SOCIAL_IMAGE_URL: '',            // imagem fixa de reserva, usada se a geração falhar (vazio = sem reserva)\n  TEMA_PERSONALIZADO: '',          // opcional: assunto do post (vazio = rodízio automático dos temas)\n  FATOS_PERSONALIZADOS: '',        // opcional: fatos reais sobre o assunto (a IA só usa o que estiver aqui)\n  // IA de texto: Groq (chave em console.groq.com/keys)\n  GROQ_MODEL: 'llama-3.3-70b-versatile',   // troque se o Groq descontinuar o modelo (veja console.groq.com/docs/models)\n\n  // Imagens geradas pelo Cloudflare Workers AI (FLUX.1-schnell) e hospedadas no imgbb\n  GERAR_IMAGEM: 'true',            // 'false' usa só a imagem fixa de SOCIAL_IMAGE_URL\n  CLOUDFLARE_ACCOUNT_ID: '',       // ID da conta (32 caracteres), no painel da Cloudflare\n  CLOUDFLARE_IMAGE_MODEL: '@cf/black-forest-labs/flux-1-schnell',\n  IMGBB_EXPIRA_DIAS: '30',         // de 1 a 180\n\n  // Aprovação por e-mail (Gmail)\n  SOCIAL_APPROVAL: 'true',         // 'true' pede aprovação; 'false' publica direto\n  SOCIAL_APPROVER_EMAIL: 'seu-email@gmail.com',\n\n  // LinkedIn\n  LINKEDIN_AUTHOR_URN: '',         // vazio = usa o seu perfil automaticamente; ou urn:li:organization:NNNN\n  LINKEDIN_API_VERSION: '202608',\n\n  // Facebook e Instagram (IDs do Graph API)\n  FACEBOOK_PAGE_ID: '',\n  INSTAGRAM_USER_ID: ''\n};\nreturn [{ json: CONFIG }];\n"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -763,7 +763,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const cfg = $('Configuração — Edite Aqui').first().json;\nconst { tema, angulo, recentes } = $input.first().json;\n\nconst prompt = `Você escreve posts de redes sociais em português do Brasil para a ConectPbx, empresa de telefonia IP e TI de São Paulo (PABX IP ConnectX, monitoramento, consultoria, integrações e desenvolvimento).\nTema do post: ${tema.titulo}\nÂngulo de abertura deste post: ${angulo || 'livre'}\nPosts recentes (não repita aberturas, frases nem estrutura): ${(recentes && recentes.length) ? recentes.join(' | ') : 'nenhum'}\nFatos permitidos (use apenas isto): ${tema.fatos}\n\nRegras:\n- Não invente números, preços, prazos, clientes, prêmios ou depoimentos.\n- Tom profissional e direto, sem exageros, sem emojis em excesso (no máximo 2).\n- Cada versão deve terminar convidando a conhecer o site, sem escrever o endereço (ele será adicionado depois).\n- LinkedIn: 500 a 900 caracteres, com abertura que chame atenção.\n- Facebook: 250 a 450 caracteres.\n- Instagram: 300 a 600 caracteres.\n- hashtags: de 4 a 6, sem espaços, sem \"#\" no início de cada item.\n- imagem: descrição visual em inglês, de 1 a 2 frases, para gerar uma ilustração quadrada moderna do tema. Sem texto, sem letras, sem logotipos, sem rostos de pessoas reais. Paleta azul-marinho escuro com detalhes em laranja.\n\nResponda somente com JSON válido neste formato, sem texto fora dele:\n{\"linkedin\":\"...\",\"facebook\":\"...\",\"instagram\":\"...\",\"hashtags\":[\"...\",\"...\"],\"imagem\":\"...\"}`;\n\nconst az = String(cfg.AZURE_OPENAI_ENDPOINT || '').replace(/\\/+$/, '');\nconst requestUrl = `${az}/openai/deployments/${encodeURIComponent(String(cfg.AZURE_OPENAI_DEPLOYMENT || '').trim())}/chat/completions?api-version=${encodeURIComponent(String(cfg.AZURE_OPENAI_API_VERSION || '2024-10-21'))}`;\nreturn [{ json: {\n  tema,\n  requestUrl,\n  requestBody: {\n    messages: [\n      { role: 'system', content: 'Você é um redator de redes sociais. Responda sempre e somente com JSON válido.' },\n      { role: 'user', content: prompt }\n    ],\n    max_completion_tokens: 4000,\n    response_format: { type: 'json_object' }\n  }\n} }];\n"
+        "jsCode": "const cfg = $('Configuração — Edite Aqui').first().json;\nconst { tema, angulo, recentes } = $input.first().json;\n\nconst prompt = `Você escreve posts de redes sociais em português do Brasil para a ConectPbx, empresa de telefonia IP e TI de São Paulo (PABX IP ConnectX, monitoramento, consultoria, integrações e desenvolvimento).\nTema do post: ${tema.titulo}\nÂngulo de abertura deste post: ${angulo || 'livre'}\nPosts recentes (não repita aberturas, frases nem estrutura): ${(recentes && recentes.length) ? recentes.join(' | ') : 'nenhum'}\nFatos permitidos (use apenas isto): ${tema.fatos}\n\nRegras:\n- Não invente números, preços, prazos, clientes, prêmios ou depoimentos.\n- Tom profissional e direto, sem exageros, sem emojis em excesso (no máximo 2).\n- Cada versão deve terminar convidando a conhecer o site, sem escrever o endereço (ele será adicionado depois).\n- LinkedIn: 500 a 900 caracteres, com abertura que chame atenção.\n- Facebook: 250 a 450 caracteres.\n- Instagram: 300 a 600 caracteres.\n- hashtags: de 4 a 6, sem espaços, sem \"#\" no início de cada item.\n- imagem: descrição visual em inglês, de 1 a 2 frases, para gerar uma ilustração quadrada moderna do tema. Sem texto, sem letras, sem logotipos, sem rostos de pessoas reais. Paleta azul-marinho escuro com detalhes em laranja.\n\nResponda somente com JSON válido neste formato, sem texto fora dele:\n{\"linkedin\":\"...\",\"facebook\":\"...\",\"instagram\":\"...\",\"hashtags\":[\"...\",\"...\"],\"imagem\":\"...\"}`;\n\nconst requestUrl = 'https://api.groq.com/openai/v1/chat/completions';\nconst modelo = String(cfg.GROQ_MODEL || 'llama-3.3-70b-versatile').trim();\nreturn [{ json: {\n  tema,\n  requestUrl,\n  requestBody: {\n    model: modelo,\n    messages: [\n      { role: 'system', content: 'Você é um redator de redes sociais. Responda sempre e somente com JSON válido.' },\n      { role: 'user', content: prompt }\n    ],\n    max_completion_tokens: 2500,\n    temperature: 0.9,\n    response_format: { type: 'json_object' }\n  }\n} }];\n"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -772,7 +772,7 @@
         250
       ],
       "id": "n31",
-      "name": "Prepara Pedido — Texto (Azure)"
+      "name": "Prepara Pedido — Texto (Groq)"
     },
     {
       "parameters": {
@@ -981,7 +981,7 @@
     },
     {
       "parameters": {
-        "jsCode": "\nconst cfg = $('Configuração — Edite Aqui').first().json;\nconst b = $input.first().json;\nconst resumo = String(b.linkedin || '').replace(/\\s+/g, ' ').slice(0, 900);\n\nconst prompt = `You are the art director for a B2B telecom and IT company (cloud PBX, monitoring, integrations, custom software). Write ONE detailed image-generation prompt, in English, for a text-to-image model (FLUX), to illustrate the social media post below.\n\nPost theme: ${b.tema.titulo}\nPost text (Portuguese): ${resumo}\n\nThe prompt must have 90 to 150 words and must describe, in this order:\n1. Main subject: one concrete visual metaphor that expresses the CENTRAL IDEA of this exact post (for example: a softphone on a laptop and a smartphone linked by glowing lines to a cloud; a monitoring dashboard with an uptime line and status lights; two app windows exchanging data through connected nodes). Do not use generic abstract shapes.\n2. Composition: square 1:1, one clear focal point near the center, balanced layout, generous negative space, clean uncluttered background.\n3. Style: premium editorial technology illustration, modern isometric or flat vector with soft gradients, subtle depth and fine highlights, sharp clean edges, professional corporate look.\n4. Color palette: deep navy blue background (#0C1729), vivid orange accents (#E4570F), white and soft cyan highlights.\n5. Lighting and mood: soft rim light, gentle glow around the connections, confident, reliable, modern.\n6. Hard constraints at the end: no text, no letters, no numbers, no logos, no watermark, no human faces, no photo-realistic people, no clutter.\n\nAnswer only with valid JSON in this format, with no text outside it:\n{\"prompt\":\"...\"}`;\n\nconst az = String(cfg.AZURE_OPENAI_ENDPOINT || '').replace(/\\/+$/, '');\nconst requestUrl = `${az}/openai/deployments/${encodeURIComponent(String(cfg.AZURE_OPENAI_DEPLOYMENT || '').trim())}/chat/completions?api-version=${encodeURIComponent(String(cfg.AZURE_OPENAI_API_VERSION || '2024-10-21'))}`;\nreturn [{ json: { ...b, requestUrl, requestBody: {\n  messages: [\n    { role: 'system', content: 'You are an art director. Answer only with valid JSON.' },\n    { role: 'user', content: prompt }\n  ],\n  max_completion_tokens: 2500,\n  response_format: { type: 'json_object' }\n} } }];\n"
+        "jsCode": "\nconst cfg = $('Configuração — Edite Aqui').first().json;\nconst b = $input.first().json;\nconst resumo = String(b.linkedin || '').replace(/\\s+/g, ' ').slice(0, 900);\n\nconst prompt = `You are the art director for a B2B telecom and IT company (cloud PBX, monitoring, integrations, custom software). Write ONE detailed image-generation prompt, in English, for a text-to-image model (FLUX), to illustrate the social media post below.\n\nPost theme: ${b.tema.titulo}\nPost text (Portuguese): ${resumo}\n\nThe prompt must have 90 to 150 words and must describe, in this order:\n1. Main subject: one concrete visual metaphor that expresses the CENTRAL IDEA of this exact post (for example: a softphone on a laptop and a smartphone linked by glowing lines to a cloud; a monitoring dashboard with an uptime line and status lights; two app windows exchanging data through connected nodes). Do not use generic abstract shapes.\n2. Composition: square 1:1, one clear focal point near the center, balanced layout, generous negative space, clean uncluttered background.\n3. Style: premium editorial technology illustration, modern isometric or flat vector with soft gradients, subtle depth and fine highlights, sharp clean edges, professional corporate look.\n4. Color palette: deep navy blue background (#0C1729), vivid orange accents (#E4570F), white and soft cyan highlights.\n5. Lighting and mood: soft rim light, gentle glow around the connections, confident, reliable, modern.\n6. Hard constraints at the end: no text, no letters, no numbers, no logos, no watermark, no human faces, no photo-realistic people, no clutter.\n\nAnswer only with valid JSON in this format, with no text outside it:\n{\"prompt\":\"...\"}`;\n\nconst requestUrl = 'https://api.groq.com/openai/v1/chat/completions';\nconst modelo = String(cfg.GROQ_MODEL || 'llama-3.3-70b-versatile').trim();\nreturn [{ json: { ...b, requestUrl, requestBody: {\n  model: modelo,\n    messages: [\n    { role: 'system', content: 'You are an art director. Answer only with valid JSON.' },\n    { role: 'user', content: prompt }\n  ],\n  max_completion_tokens: 1200,\n    temperature: 0.9,\n  response_format: { type: 'json_object' }\n} } }];\n"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -1021,12 +1021,12 @@
         -550
       ],
       "id": "n40",
-      "name": "Azure OpenAI — Prompt de Imagem",
+      "name": "Groq — Prompt de Imagem",
       "onError": "continueRegularOutput",
       "credentials": {
         "httpHeaderAuth": {
           "id": "",
-          "name": "Azure OpenAI (api-key)"
+          "name": "Groq API (Bearer)"
         }
       }
     },
@@ -1071,14 +1071,14 @@
       "main": [
         [
           {
-            "node": "Prepara Pedido — Texto (Azure)",
+            "node": "Prepara Pedido — Texto (Groq)",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Azure OpenAI — Gerar Textos": {
+    "Groq — Gerar Textos": {
       "main": [
         [
           {
@@ -1391,11 +1391,11 @@
         ]
       ]
     },
-    "Prepara Pedido — Texto (Azure)": {
+    "Prepara Pedido — Texto (Groq)": {
       "main": [
         [
           {
-            "node": "Azure OpenAI — Gerar Textos",
+            "node": "Groq — Gerar Textos",
             "type": "main",
             "index": 0
           }
@@ -1501,14 +1501,14 @@
       "main": [
         [
           {
-            "node": "Azure OpenAI — Prompt de Imagem",
+            "node": "Groq — Prompt de Imagem",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Azure OpenAI — Prompt de Imagem": {
+    "Groq — Prompt de Imagem": {
       "main": [
         [
           {

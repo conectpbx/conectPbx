@@ -7,9 +7,9 @@ Importe em *n8n → Workflows → Import from file*. Depois selecione as credenc
 
 1. **Agenda:** segunda, quarta e sexta às 10h (fuso de São Paulo). Também há um gatilho manual.
 2. **Tema:** sorteia um entre 8 temas (nunca repete o último; ou usa `TEMA_PERSONALIZADO`, se preenchido) baseados no que o site já afirma (ramal remoto, ligações por valor fixo, Slack + Zoho Desk, monitoramento, consultoria, CRM e mensagens, portaria remota, sistemas sob medida).
-3. **Texto:** o **Azure OpenAI** escreve uma versão para LinkedIn, Facebook e Instagram, usando só os fatos do tema (sem inventar números, preços ou clientes). Cada post recebe um ângulo de abertura sorteado e a lista dos posts recentes, para não repetir. Se a IA falhar, entra um texto fixo e seguro, e o e-mail de aprovação informa o motivo da falha (ex.: chave da API inválida).
+3. **Texto:** o **Groq** (Llama) escreve uma versão para LinkedIn, Facebook e Instagram, usando só os fatos do tema (sem inventar números, preços ou clientes). Cada post recebe um ângulo de abertura sorteado e a lista dos posts recentes, para não repetir. Se a IA falhar, entra um texto fixo e seguro, e o e-mail de aprovação informa o motivo da falha (ex.: chave da API inválida).
 4. **Link:** acrescenta o site com `utm_source` de cada rede, para medir o retorno no Analytics.
-5. **Imagem:** um segundo passo do Azure OpenAI ("direção de arte") lê o texto do post e escreve um prompt detalhado em inglês (metáfora visual, composição, estilo, paleta, iluminação, restrições). O **FLUX.1-schnell (Cloudflare Workers AI)** a gera e o **imgbb** a hospeda numa URL pública. Se a Cloudflare ou o imgbb falharem, o fluxo usa a imagem fixa de reserva (`SOCIAL_IMAGE_URL`) ou segue sem imagem.
+5. **Imagem:** um segundo passo do Groq ("direção de arte") lê o texto do post e escreve um prompt detalhado em inglês (metáfora visual, composição, estilo, paleta, iluminação, restrições). O **FLUX.1-schnell (Cloudflare Workers AI)** a gera e o **imgbb** a hospeda numa URL pública. Se a Cloudflare ou o imgbb falharem, o fluxo usa a imagem fixa de reserva (`SOCIAL_IMAGE_URL`) ou segue sem imagem.
 6. **Aprovação (padrão):** envia o rascunho por **Gmail** com o botão "Aprovar e publicar". Só publica depois de clicar. Em 48 h sem aprovação, o post é descartado.
 7. **Publicação:** LinkedIn (página da empresa), Facebook (Página) e Instagram (conta profissional, exige imagem).
 8. **Resultado:** envia um e-mail dizendo o que foi publicado e o que falhou.
@@ -21,7 +21,7 @@ Todas as configurações ficam em um único nó de código no início do fluxo, 
 | Campo | Para quê |
 |---|---|
 | `SITE_URL` | endereço do site |
-| `AZURE_OPENAI_ENDPOINT` / `AZURE_OPENAI_DEPLOYMENT` / `AZURE_OPENAI_API_VERSION` | endereço do recurso (`https://NOME.openai.azure.com`), nome do deployment e versão da API |
+| `GROQ_MODEL` | modelo do Groq (padrão `llama-3.3-70b-versatile`) |
 | `TEMA_PERSONALIZADO` / `FATOS_PERSONALIZADOS` | opcional: força um assunto e os fatos reais a usar (vazio = sorteio automático) |
 | `SOCIAL_APPROVAL` | `'true'` pede aprovação por e-mail; `'false'` publica direto |
 | `SOCIAL_APPROVER_EMAIL` | e-mail de quem aprova e recebe os avisos (vários, separados por vírgula) |
@@ -39,7 +39,7 @@ Não coloque tokens nem senhas nesse nó. Eles ficam nas credenciais do n8n.
 
 ## Credenciais
 
-**Azure OpenAI (texto):** credencial *Header Auth* com Name `api-key` e Value = a chave do recurso (Keys and Endpoint, no portal do Azure). Use nos dois nós "Azure OpenAI — …".
+**Groq (texto):** credencial *Header Auth* com Name `Authorization` e Value `Bearer SUA_CHAVE` (chave criada em console.groq.com/keys). Use nos dois nós "Groq — …".
 
 - **Gmail:** credencial *Gmail OAuth2* no n8n (Google Cloud: ative a *Gmail API*, crie o cliente OAuth e use a URL de retorno da credencial). O envio usa a conta que fez o login.
 - **LinkedIn (HTTP Request + OAuth2 genérica):** o nó usa a API `POST /rest/posts`. Crie uma credencial *OAuth2 API* no n8n com:
