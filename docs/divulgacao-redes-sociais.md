@@ -30,7 +30,6 @@ Todas as configurações ficam em um único nó de código no início do fluxo, 
 | `CLOUDFLARE_IMAGE_MODEL` | modelo de imagem (padrão `@cf/black-forest-labs/flux-1-schnell`) |
 | `IMGBB_EXPIRA_DIAS` | por quantos dias a imagem fica no imgbb (1 a 180) |
 | `SOCIAL_IMAGE_URL` | imagem fixa de reserva (https), usada se a geração falhar. Vazio = sem reserva |
-| `SOCIAL_AI_MODEL` | modelo do Claude |
 | `LINKEDIN_AUTHOR_URN` | vazio = publica no seu perfil automaticamente; ou `urn:li:organization:NNNN` para a página |
 | `LINKEDIN_API_VERSION` | versão da API do LinkedIn (`AAAAMM`). O LinkedIn desativa cada versão após cerca de 1 ano, então atualize a cada 6 meses. Erro "version is not active" = versão antiga demais |
 | `FACEBOOK_PAGE_ID` | ID da Página do Facebook |
@@ -42,7 +41,6 @@ Não coloque tokens nem senhas nesse nó. Eles ficam nas credenciais do n8n.
 
 **Azure OpenAI (texto):** credencial *Header Auth* com Name `api-key` e Value = a chave do recurso (Keys and Endpoint, no portal do Azure). Use nos dois nós "Azure OpenAI — …".
 
-- **Anthropic:** credencial *Header Auth* com nome `x-api-key` e a chave da API como valor.
 - **Gmail:** credencial *Gmail OAuth2* no n8n (Google Cloud: ative a *Gmail API*, crie o cliente OAuth e use a URL de retorno da credencial). O envio usa a conta que fez o login.
 - **LinkedIn (HTTP Request + OAuth2 genérica):** o nó usa a API `POST /rest/posts`. Crie uma credencial *OAuth2 API* no n8n com:
   - Authorization URL: `https://www.linkedin.com/oauth/v2/authorization`
