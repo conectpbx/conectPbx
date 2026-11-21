@@ -10,7 +10,7 @@ Importe em *n8n → Workflows → Import from file*. Depois selecione as credenc
 3. **Texto:** o **Groq** escreve uma versão para LinkedIn, Facebook e Instagram, usando só os fatos do tema (sem inventar números, preços ou clientes). Cada post recebe um ângulo de abertura sorteado e a lista dos posts recentes, para não repetir. Se a IA falhar, entra um texto fixo e seguro, e o e-mail de aprovação informa o motivo da falha (ex.: chave da API inválida).
 4. **Link:** acrescenta o site com `utm_source` de cada rede, para medir o retorno no Analytics.
 5. **Imagem:** um segundo passo do Groq ("direção de arte") lê o texto do post e escreve um prompt detalhado em inglês (metáfora visual, composição, estilo, paleta, iluminação, restrições). O **FLUX.1-schnell (Cloudflare Workers AI)** a gera e o **imgbb** a hospeda numa URL pública. Se a Cloudflare ou o imgbb falharem, o fluxo usa a imagem fixa de reserva (`SOCIAL_IMAGE_URL`) ou segue sem imagem.
-6. **Aprovação (padrão):** envia o rascunho por **Gmail** com o botão "Aprovar e publicar". Só publica depois de clicar. Em 48 h sem aprovação, o post é descartado.
+6. **Aprovação (padrão):** envia o rascunho por **Gmail** com o botão "Aprovar e publicar" (nó nativo Gmail "Send and Wait for Response"). Só publica depois de clicar. Em 48 h sem aprovação, o post é descartado.
 7. **Publicação:** LinkedIn (página da empresa), Facebook (Página) e Instagram (conta profissional, exige imagem).
 8. **Resultado:** envia um e-mail dizendo o que foi publicado e o que falhou.
 

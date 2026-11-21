@@ -133,12 +133,25 @@
     {
       "parameters": {
         "resource": "message",
-        "operation": "send",
+        "operation": "sendAndWait",
         "sendTo": "={{ $('Configuração — Edite Aqui').first().json.SOCIAL_APPROVER_EMAIL }}",
         "subject": "={{ $json.assunto }}",
-        "emailType": "html",
-        "message": "={{ $json.html }}",
+        "message": "={{ $json.texto }}",
+        "responseType": "approval",
+        "approvalOptions": {
+          "values": {
+            "approvalType": "single",
+            "approveLabel": "Aprovar e publicar"
+          }
+        },
         "options": {
+          "limitWaitTime": {
+            "values": {
+              "limitType": "afterTimeInterval",
+              "resumeAmount": 48,
+              "resumeUnit": "hours"
+            }
+          },
           "appendAttribution": false
         }
       },
@@ -159,26 +172,6 @@
     },
     {
       "parameters": {
-        "resume": "webhook",
-        "httpMethod": "GET",
-        "options": {},
-        "limitWaitTime": true,
-        "limitType": "afterTimeInterval",
-        "resumeAmount": 48,
-        "resumeUnit": "hours"
-      },
-      "type": "n8n-nodes-base.wait",
-      "typeVersion": 1.1,
-      "position": [
-        1560,
-        -60
-      ],
-      "id": "n08",
-      "name": "Aguarda Aprovação (até 48h)",
-      "webhookId": "aprovar-post-social"
-    },
-    {
-      "parameters": {
         "conditions": {
           "options": {
             "caseSensitive": true,
@@ -189,7 +182,7 @@
           "conditions": [
             {
               "id": "c2",
-              "leftValue": "={{ !!$json.headers }}",
+              "leftValue": "={{ !!($json.data && $json.data.approved === true) }}",
               "rightValue": true,
               "operator": {
                 "type": "boolean",
@@ -467,7 +460,7 @@
     },
     {
       "parameters": {
-        "jsCode": "\nconst post = $('Define Imagem Final').first().json;\nconst h = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\\n/g,'<br>');\nconst bloco = (titulo, texto) => `<h3 style=\"margin:18px 0 6px;font-size:15px\">${titulo}</h3><div style=\"padding:12px 14px;background:#f4f6fa;border-radius:8px;font-size:14px;line-height:1.5\">${h(texto)}</div>`;\nconst cfg = $('Configuração — Edite Aqui').first().json;\nlet link = String($execution.resumeUrl || '');\nconst pub = String(cfg.N8N_URL_PUBLICA || '').trim().replace(/\\/+$/, '');\nif (pub) link = link.replace(/^https?:\\/\\/[^/]+/i, pub);\nconst linkLocal = /^https?:\\/\\/(localhost|127\\.0\\.0\\.1|0\\.0\\.0\\.0)/i.test(link);\nconst html = `<div style=\"font-family:Arial,sans-serif;max-width:640px;color:#0c1729\">\n<p style=\"font-size:15px\">Post para aprovar: <b>${h(post.tema.titulo)}</b> <span style=\"color:#667\">(texto: ${post.fonte === 'ia' ? 'gerado por IA' : 'TEXTO DE RESERVA, a IA falhou: ' + h(post.iaMotivo || 'motivo desconhecido')})</span></p>\n${post.temImagem ? `<img src=\"${post.imagem}\" alt=\"Imagem do post\" style=\"max-width:100%;width:420px;border-radius:8px;margin:8px 0\"><p style=\"font-size:12px;color:#667\">Imagem: ${post.imagemOrigem === 'cloudflare' ? 'gerada pelo FLUX (Cloudflare)' : 'imagem fixa de reserva'}</p><p style=\"font-size:11px;color:#889\">Prompt da imagem: ${h(post.imagemPrompt || '')}</p>` : `<p style=\"color:#a60\">Sem imagem${post.imagemAviso ? ' (' + h(post.imagemAviso) + ')' : ''}. O Instagram será ignorado.</p>`}${bloco('LinkedIn', post.linkedin)}${bloco('Facebook', post.facebook)}${bloco('Instagram' + (post.temImagem ? '' : ' (sem imagem, será ignorado)'), post.instagram)}\n${linkLocal ? '<p style=\"padding:10px 12px;background:#fff3cd;border-radius:8px;font-size:13px\"><b>Atenção:</b> o link de aprovação aponta para localhost e não vai abrir. Defina WEBHOOK_URL no n8n ou preencha N8N_URL_PUBLICA na configuração do workflow.</p>' : ''}<p style=\"margin:26px 0 8px\"><a href=\"${link}\" style=\"background:#e4570f;color:#fff;padding:12px 22px;border-radius:8px;text-decoration:none;font-weight:bold\">Aprovar e publicar</a></p>\n<p style=\"font-size:12px;color:#667\">Para não publicar, ignore este e-mail. O rascunho expira em 48 horas. Não encaminhe este e-mail: quem tiver o link consegue aprovar.</p><p style=\"font-size:11px;color:#889;word-break:break-all\">Se o botão não abrir, copie este endereço no navegador: ${link}</p></div>`;\nreturn [{ json: { assunto: `[Aprovar post] ${post.tema.titulo}`, html } }];\n"
+        "jsCode": "\nconst post = $('Define Imagem Final').first().json;\nconst origemTexto = post.fonte === 'ia' ? 'gerado por IA' : 'TEXTO DE RESERVA, a IA falhou: ' + (post.iaMotivo || 'motivo desconhecido');\nconst imagem = post.temImagem\n  ? `Imagem (${post.imagemOrigem === 'cloudflare' ? 'gerada pelo FLUX' : 'imagem fixa de reserva'}): ${post.imagem}\\nPrompt da imagem: ${post.imagemPrompt || ''}`\n  : `Sem imagem${post.imagemAviso ? ' (' + post.imagemAviso + ')' : ''}. O Instagram será ignorado.`;\nconst texto = `Post para aprovar: ${post.tema.titulo}\\n(texto: ${origemTexto})\\n\\n${imagem}\\n\\n==== LinkedIn ====\\n${post.linkedin}\\n\\n==== Facebook ====\\n${post.facebook}\\n\\n==== Instagram${post.temImagem ? '' : ' (sem imagem, será ignorado)'} ====\\n${post.instagram}\\n\\nClique em \"Aprovar e publicar\" para publicar. Se não responder, o rascunho expira em 48 horas e nada é publicado.`;\nreturn [{ json: { assunto: `[Aprovar post] ${post.tema.titulo}`, texto } }];\n"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -480,7 +473,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// EDITE AQUI: todas as configurações do workflow ficam neste nó (não precisa de \"Variables\" do n8n).\nconst CONFIG = {\n  // Site e conteúdo\n  SITE_URL: 'https://conectxip.com',\n  SOCIAL_IMAGE_URL: '',            // imagem fixa de reserva, usada se a geração falhar (vazio = sem reserva)\n  TEMA_PERSONALIZADO: '',          // opcional: assunto do post (vazio = rodízio automático dos temas)\n  FATOS_PERSONALIZADOS: '',        // opcional: fatos reais sobre o assunto (a IA só usa o que estiver aqui)\n  // IA de texto: Groq (chave em console.groq.com/keys)\n  GROQ_MODEL: 'openai/gpt-oss-120b',   // o llama-3.3-70b-versatile foi descontinuado; veja os atuais em console.groq.com/docs/models\n\n  // Imagens geradas pelo Cloudflare Workers AI (FLUX.1-schnell) e hospedadas no imgbb\n  GERAR_IMAGEM: 'true',            // 'false' usa só a imagem fixa de SOCIAL_IMAGE_URL\n  CLOUDFLARE_ACCOUNT_ID: '',       // ID da conta (32 caracteres), no painel da Cloudflare\n  CLOUDFLARE_IMAGE_MODEL: '@cf/black-forest-labs/flux-1-schnell',\n  IMGBB_EXPIRA_DIAS: '30',         // de 1 a 180\n\n  // Aprovação por e-mail (Gmail)\n  SOCIAL_APPROVAL: 'true',         // 'true' pede aprovação; 'false' publica direto\n  SOCIAL_APPROVER_EMAIL: 'seu-email@gmail.com',\n  N8N_URL_PUBLICA: 'https://automatic.conectxip.com',             // endereço público do seu n8n, ex.: https://n8n.seudominio.com (corrige o link do botão Aprovar atrás de proxy)\n\n  // LinkedIn\n  LINKEDIN_AUTHOR_URN: '',         // vazio = usa o seu perfil automaticamente; ou urn:li:organization:NNNN\n  LINKEDIN_API_VERSION: '202608',\n\n  // Facebook e Instagram (IDs do Graph API)\n  FACEBOOK_PAGE_ID: '',\n  INSTAGRAM_USER_ID: ''\n};\nreturn [{ json: CONFIG }];\n"
+        "jsCode": "// EDITE AQUI: todas as configurações do workflow ficam neste nó (não precisa de \"Variables\" do n8n).\nconst CONFIG = {\n  // Site e conteúdo\n  SITE_URL: 'https://conectxip.com',\n  SOCIAL_IMAGE_URL: '',            // imagem fixa de reserva, usada se a geração falhar (vazio = sem reserva)\n  TEMA_PERSONALIZADO: '',          // opcional: assunto do post (vazio = rodízio automático dos temas)\n  FATOS_PERSONALIZADOS: '',        // opcional: fatos reais sobre o assunto (a IA só usa o que estiver aqui)\n  // IA de texto: Groq (chave em console.groq.com/keys)\n  GROQ_MODEL: 'openai/gpt-oss-120b',   // o llama-3.3-70b-versatile foi descontinuado; veja os atuais em console.groq.com/docs/models\n\n  // Imagens geradas pelo Cloudflare Workers AI (FLUX.1-schnell) e hospedadas no imgbb\n  GERAR_IMAGEM: 'true',            // 'false' usa só a imagem fixa de SOCIAL_IMAGE_URL\n  CLOUDFLARE_ACCOUNT_ID: '',       // ID da conta (32 caracteres), no painel da Cloudflare\n  CLOUDFLARE_IMAGE_MODEL: '@cf/black-forest-labs/flux-1-schnell',\n  IMGBB_EXPIRA_DIAS: '30',         // de 1 a 180\n\n  // Aprovação por e-mail (Gmail)\n  SOCIAL_APPROVAL: 'true',         // 'true' pede aprovação; 'false' publica direto\n  SOCIAL_APPROVER_EMAIL: 'seu-email@gmail.com',\n\n  // LinkedIn\n  LINKEDIN_AUTHOR_URN: '',         // vazio = usa o seu perfil automaticamente; ou urn:li:organization:NNNN\n  LINKEDIN_API_VERSION: '202608',\n\n  // Facebook e Instagram (IDs do Graph API)\n  FACEBOOK_PAGE_ID: '',\n  INSTAGRAM_USER_ID: ''\n};\nreturn [{ json: CONFIG }];\n"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -1117,17 +1110,6 @@
         ]
       ]
     },
-    "Aguarda Aprovação (até 48h)": {
-      "main": [
-        [
-          {
-            "node": "IF — Foi Aprovado?",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "IF — Foi Aprovado?": {
       "main": [
         [
@@ -1234,7 +1216,7 @@
       "main": [
         [
           {
-            "node": "Aguarda Aprovação (até 48h)",
+            "node": "IF — Foi Aprovado?",
             "type": "main",
             "index": 0
           }
