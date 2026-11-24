@@ -382,7 +382,7 @@
             "parameter": [
               {
                 "name": "creation_id",
-                "value": "={{ $json.id }}"
+                "value": "={{ $('Instagram — Criar Mídia').first().json.id }}"
               }
             ]
           }
@@ -391,7 +391,7 @@
       "type": "n8n-nodes-base.facebookGraphApi",
       "typeVersion": 1,
       "position": [
-        2340,
+        3040,
         120
       ],
       "id": "n15",
@@ -406,7 +406,7 @@
     },
     {
       "parameters": {
-        "jsCode": "\nconst get = nome => { try { return $(nome).first().json; } catch (e) { return null; } };\nconst ok = (j, campo) => !!(j && !j.error && !j.errorMessage && (campo ? j[campo] : true));\nconst li = get('LinkedIn — Publicar');\nconst fb = get('Facebook — Publicar Foto') || get('Facebook — Publicar na Página');\nconst igc = get('Instagram — Criar Mídia');\nconst igp = get('Instagram — Publicar');\nconst post = get('Define Imagem Final');\nconst prep = get('LinkedIn — Preparar Texto');\nconst limg = get('LinkedIn — Monta Post com Imagem');\n\nconst linhas = [\n  `LinkedIn: ${(prep && prep.pular) ? 'FALHOU (' + prep.motivo + ')' : (ok(li) ? 'publicado' + (limg && limg.semImagemLinkedin ? ' sem imagem (' + limg.avisoImagemLinkedin + ')' : '') : 'FALHOU')}`,\n  `Facebook: ${ok(fb, 'id') ? 'publicado' : 'FALHOU'}`,\n  `Instagram: ${post && !post.temImagem ? 'ignorado (sem imagem' + (post.imagemAviso ? ': ' + post.imagemAviso : '') + ')' : (ok(igc, 'id') && ok(igp, 'id') ? 'publicado' : 'FALHOU')}`\n];\nconst houveFalha = linhas.some(l => l.includes('FALHOU'));\nconst html = `<div style=\"font-family:Arial,sans-serif;color:#0c1729\"><p><b>${houveFalha ? 'Alguma rede falhou' : 'Divulgação concluída'}</b>: ${String(post?.tema?.titulo || '')}</p><p style=\"white-space:pre-line\">${linhas.join('\\n')}</p>${houveFalha ? '<p style=\"color:#667;font-size:12px\">Confira a execução no n8n para ver o erro de cada rede.</p>' : ''}</div>`;\nreturn [{ json: { tema: post?.tema?.titulo, fonte: post?.fonte, resumo: linhas.join('\\n'), houveFalha, html } }];\n"
+        "jsCode": "\nconst get = nome => { try { return $(nome).first().json; } catch (e) { return null; } };\nconst ok = (j, campo) => !!(j && !j.error && !j.errorMessage && (campo ? j[campo] : true));\nconst li = get('LinkedIn — Publicar');\nconst fb = get('Facebook — Publicar Foto') || get('Facebook — Publicar na Página');\nconst igc = get('Instagram — Criar Mídia');\nconst igp = get('Instagram — Publicar');\nconst post = get('Define Imagem Final');\nconst prep = get('LinkedIn — Preparar Texto');\nconst limg = get('LinkedIn — Monta Post com Imagem');\n\nconst motivoIg = [igc, igp].map(j => j && (j.errorMessage || (j.error && (j.error.message || j.error)) || '')).find(Boolean);\nconst linhas = [\n  `LinkedIn: ${(prep && prep.pular) ? 'FALHOU (' + prep.motivo + ')' : (ok(li) ? 'publicado' + (limg && limg.semImagemLinkedin ? ' sem imagem (' + limg.avisoImagemLinkedin + ')' : '') : 'FALHOU')}`,\n  `Facebook: ${ok(fb, 'id') ? 'publicado' : 'FALHOU'}`,\n  `Instagram: ${post && !post.temImagem ? 'ignorado (sem imagem' + (post.imagemAviso ? ': ' + post.imagemAviso : '') + ')' : (ok(igc, 'id') && ok(igp, 'id') ? 'publicado' : 'FALHOU' + (motivoIg ? ' (' + String(motivoIg).slice(0, 160) + ')' : ''))}`\n];\nconst houveFalha = linhas.some(l => l.includes('FALHOU'));\nconst html = `<div style=\"font-family:Arial,sans-serif;color:#0c1729\"><p><b>${houveFalha ? 'Alguma rede falhou' : 'Divulgação concluída'}</b>: ${String(post?.tema?.titulo || '')}</p><p style=\"white-space:pre-line\">${linhas.join('\\n')}</p>${houveFalha ? '<p style=\"color:#667;font-size:12px\">Confira a execução no n8n para ver o erro de cada rede.</p>' : ''}</div>`;\nreturn [{ json: { tema: post?.tema?.titulo, fonte: post?.fonte, resumo: linhas.join('\\n'), houveFalha, html } }];\n"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -1034,6 +1034,138 @@
       ],
       "name": "Monta Prompt de Imagem",
       "id": "n41"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "cda?",
+              "leftValue": "={{ !!$json.id }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        2240,
+        120
+      ],
+      "name": "IF — Mídia Criada?",
+      "id": "n41"
+    },
+    {
+      "parameters": {
+        "resume": "timeInterval",
+        "amount": 10,
+        "unit": "seconds"
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        2400,
+        120
+      ],
+      "name": "Instagram — Espera 10s",
+      "webhookId": "ig-10-320",
+      "id": "n42"
+    },
+    {
+      "parameters": {
+        "graphApiVersion": "v23.0",
+        "node": "={{ $('Instagram — Criar Mídia').first().json.id }}",
+        "edge": "",
+        "options": {
+          "queryParameters": {
+            "parameter": [
+              {
+                "name": "fields",
+                "value": "status_code"
+              }
+            ]
+          }
+        }
+      },
+      "type": "n8n-nodes-base.facebookGraphApi",
+      "typeVersion": 1,
+      "position": [
+        2560,
+        120
+      ],
+      "name": "Instagram — Status da Mídia",
+      "onError": "continueRegularOutput",
+      "credentials": {
+        "facebookGraphApi": {
+          "id": "",
+          "name": "Facebook Graph (token da Página)"
+        }
+      },
+      "id": "n43"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "cta?",
+              "leftValue": "={{ $json.status_code === 'FINISHED' }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        2720,
+        120
+      ],
+      "name": "IF — Mídia Pronta?",
+      "id": "n44"
+    },
+    {
+      "parameters": {
+        "resume": "timeInterval",
+        "amount": 20,
+        "unit": "seconds"
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        2880,
+        120
+      ],
+      "name": "Instagram — Espera 20s",
+      "webhookId": "ig-20-800",
+      "id": "n45"
     }
   ],
   "connections": {
@@ -1172,7 +1304,7 @@
       "main": [
         [
           {
-            "node": "Instagram — Publicar",
+            "node": "IF — Mídia Criada?",
             "type": "main",
             "index": 0
           }
@@ -1505,6 +1637,75 @@
         [
           {
             "node": "Prepara Pedido — Imagem",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF — Mídia Criada?": {
+      "main": [
+        [
+          {
+            "node": "Instagram — Espera 10s",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Resumo da Publicação",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Instagram — Espera 10s": {
+      "main": [
+        [
+          {
+            "node": "Instagram — Status da Mídia",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Instagram — Status da Mídia": {
+      "main": [
+        [
+          {
+            "node": "IF — Mídia Pronta?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF — Mídia Pronta?": {
+      "main": [
+        [
+          {
+            "node": "Instagram — Publicar",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Instagram — Espera 20s",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Instagram — Espera 20s": {
+      "main": [
+        [
+          {
+            "node": "Instagram — Publicar",
             "type": "main",
             "index": 0
           }
